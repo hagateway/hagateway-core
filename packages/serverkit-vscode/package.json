@@ -1,0 +1,21 @@
+{
+    "name": "@wagateway/serverkit-vscode",
+    "version": "0.0.0",
+    "description": "",
+    "files": [
+      "dist/",
+      "lib/",
+      "res/",
+      "src/"
+    ],
+    "exports": {
+      ".": "./dist/src/index.js"
+    },
+    "scripts": {
+      "build": "tsc",
+      "test": "echo TODO impl && exit 1"
+    },
+    "author": "",
+    "license": "ISC"
+  }
+  

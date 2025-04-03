@@ -1,0 +1,35 @@
+{
+  "name": "@wagateway/server",
+  "version": "0.0.0",
+  "description": "",
+  "files": [
+    "dist",
+    "lib",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node src/",
+    "test": "echo TODO impl && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "connect-redis": "^8.0.2",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "glob": "^11.0.1",
+    "http-upgrade-request": "^0.0.0",
+    "redis": "^4.7.0",
+    "uuid": "^11.1.0",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/express-session": "^1.18.1",
+    "@types/uuid": "^10.0.0",
+    "@types/yargs": "^17.0.33",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  }
+}

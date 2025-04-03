@@ -1,0 +1,26 @@
+{
+  "name": "@wagateway/clientkit",
+  "version": "0.0.0",
+  "description": "",
+  "type": "module",
+  "files": [
+    "dist",
+    "lib",
+    "src"
+  ],
+  "exports": {
+    ".": "./dist/src/index.mjs"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "echo TODO impl && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@wagateway/clientkit.frontend": "^0.0.0",
+    "@wagateway/server": "^0.0.0",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0"
+  }
+}

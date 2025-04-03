@@ -1,0 +1,27 @@
+{
+  "name": "@wagateway/clientkit.frontend",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "index.mjs",
+  "description": "",
+  "files": [
+    "dist",
+    "lib",
+    "src"
+  ],
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "test": "echo TODO impl && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@patternfly/react-core": "^6.1.0",
+    "@patternfly/react-icons": "^6.1.0",
+    "@types/react": "^18.3.20",
+    "@types/react-dom": "^18.3.5",
+    "esbuild": "^0.25.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}

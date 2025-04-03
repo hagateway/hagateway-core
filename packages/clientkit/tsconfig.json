@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "rewriteRelativeImportExtensions": true,
+    "target": "ESNext",
+    "esModuleInterop": true,
+    "exactOptionalPropertyTypes": true,
+    "strict": true,
+    "declaration": true,
+    "sourceMap": true,
+    "declarationMap": true,
+
+    //"lib": ["ESNext"],
+    "outDir": "dist",
+  },
+  "include": ["lib", "src"]
+}

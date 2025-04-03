@@ -1,0 +1,7 @@
+{
+    "name": "wagateway",
+    "private": true,
+    "workspaces": [
+        "packages/*"
+    ]
+}

@@ -1,0 +1,29 @@
+{
+    "name": "@wagateway/serverkit-linux",
+    "version": "0.0.0",
+    "description": "",
+    "files": [
+        "dist/",
+        "lib/",
+        "src/"
+    ],
+    "exports": {
+        ".": "./dist/src/index.js"
+    },
+    "scripts": {
+        "build": "tsc",
+        "test": "echo TODO impl && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "dbus-next": "github:dbusjs/node-dbus-next",
+        "http-proxy-middleware": "^3.0.3",
+        "node-linux-pam": "^0.2.1",
+        "userid": "^1.2.5",
+        "zod": "^3.24.2"
+    },
+    "devDependencies": {
+        "typescript": "^5.8.2"
+    }
+}
