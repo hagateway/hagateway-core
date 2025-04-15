@@ -1,146 +1,120 @@
 import Express from "express";
-import { APIResponseBody } from "./std/api";
+import { RPCHandler } from "@orpc/server/node";
+import { implement } from "@orpc/server";
+import { AuthType, AuthInfo, AuthInput, AuthAPIContract } from "@wagateway/api/lib/auth";
 
 
 export class AuthError extends Error {}
 
-
-export type AuthScheme = "password";
-
-export interface AuthInfo<SchemeT extends AuthScheme = AuthScheme> {
-    ref: string;
-    scheme: SchemeT;
-    displayName?: string;
-    description?: string;
+// TODO
+export interface AuthResult {
+    user?: string;
+    // nextPath?: string | null;
 }
 
-
-export type PasswdAuthRequest = Express.Request<
-    {}, {}, {}, { username: string; password: string; }
->;
-
-export interface IAuthHandler<SchemeT extends AuthScheme = AuthScheme> {
-    info: AuthInfo<SchemeT>;
-    (req: { "password": PasswdAuthRequest }[SchemeT])
-        : Promise<AuthResult | null>;
+export interface AuthContext {
+    input: AuthInput; 
+    result: AuthResult;
+    req: Express.Request;
 }
 
+// TODO
+export interface IAuthProvider {
+    info: AuthInfo;
+    callback: (context: AuthContext) => Promise<void>;
+}
+
+export type IAuthProviderRef = [type: AuthType, name: string];
 
 export interface IAuthManager {
-    use(handler: IAuthHandler): IAuthManager;
-    serve(ref: string): IAuthHandler | undefined;
-    refs(): Iterable<string>;
-    query(ref: string): AuthInfo | undefined;
+    use(provider: IAuthProvider): IAuthManager;
+    serve(ref: IAuthProviderRef): IAuthProvider | undefined;
+    refs(): Iterable<IAuthProviderRef>;
+    query(ref: IAuthProviderRef): AuthInfo | undefined;
 }
 
 export class AuthManager implements IAuthManager {
-    protected readonly authHandlers = new Map<string, IAuthHandler>();
+    protected readonly authProvidersHashMap = new Map<string, IAuthProvider>();
+    protected readonly hashRef = (ref: IAuthProviderRef): string => {
+        return JSON.stringify(ref);
+    };
+    
+    use(provider: IAuthProvider) {
+        this.authProvidersHashMap.set(
+            this.hashRef([
+                provider.info.type,
+                provider.info.ref,
+            ]),
+            provider,
+        );
 
-    use(handler: IAuthHandler) {
-        this.authHandlers.set(handler.info.ref, handler);
         return this;
     }
 
-    serve(ref: string) {
-        return this.authHandlers.get(ref);
+    serve(ref: IAuthProviderRef) {
+        return this.authProvidersHashMap.get(this.hashRef(ref));
     }
 
-    refs() {
-        return this.authHandlers.keys();
+    *refs() {
+        for (const provider of this.authProvidersHashMap.values()) {
+            yield [provider.info.type, provider.info.ref] satisfies IAuthProviderRef;
+        }
     }
 
-    query(ref: string) {
-        return this.authHandlers.get(ref)?.info;
+    query(ref: IAuthProviderRef) {
+        return this.authProvidersHashMap.get(this.hashRef(ref))?.info;
     }
 }
 
-
-
-export interface AuthResult {
-    user: string;
-}
-
-export interface IAuthCallback {
-    (authRes: AuthResult, res: Express.Response): Promise<void>;
-}
-
-
-export interface IAuthMiddleware extends Express.RequestHandler {
-    protect(handler: IAuthCallback): IAuthMiddleware;
-}
-
-// TODO !!!!!
-export function AuthMiddleware(config: {
+export function AuthAPIImpl(config: {
     authManager: IAuthManager;
-}): IAuthMiddleware {
-    const authCallbacks = new Set<IAuthCallback>();
+    onAuthRequest?: (context: AuthContext) => Promise<void>;
+    onAuthSuccess?: (context: AuthContext) => Promise<void>;
+}) {
+    const os = implement(AuthAPIContract)
+        .$context<{ req: Express.Request }>();
 
-    const router = Express.Router();
+    return os.router({
+        info: os.info.handler(() => {
+            return {
+                version: 0,
+                callbacks: Array.from(
+                    config.authManager.refs(),
+                    (ref) => {
+                        return config.authManager.query(ref)!;
+                    },
+                ),
+            };
+        }),
+        // TODO error
+        callback: os.callback.handler(async ({ input, context, errors }) => {
+            const authContext: AuthContext = {
+                input,
+                result: {},
+                req: context.req,
+            };
+            
+            await config.onAuthRequest?.(authContext);
 
-    router.get(
-        "/callbacks",
-        (_, res: Express.Response<{
-            type: "data";
-            body: Record<string, AuthInfo>;
-        }>) => {
-            const infos: any = { };
-            for (const ref of config.authManager.refs()) {
-                const info = config.authManager.query(ref);
-                if (info == null)
-                    throw new Error(`Invalid auth ref: ${ref}`);
-                infos[ref] = info;
+            const provider = config.authManager.serve([
+                input.type,
+                input.ref,
+            ]);
+            if (provider == null) {
+                throw new Error(`Auth provider not found with input: ${input}`);
             }
-            res.status(200).json({
-                type: "data",
-                body: infos,
-            });
-        },
-    );
 
-    router.post(
-        "/callbacks/:ref",
-        async (
-            req: Express.Request, 
-            res: Express.Response<APIResponseBody>,
-        ) => {
-            const handler = config.authManager.serve(req.params.ref);
-            if (handler == null) {
-                res.status(400).json();
-            } else {
-                // TODO
-                try {
-                    const authRes = await handler(req as any);
-                    if (authRes == null) {
-                        res.status(401).json();
-                    } else {
-                        for (const cb of authCallbacks) {
-                            await cb(authRes, res);
-                        }
-                        res.status(204).json();
-                    }                    
-                } catch (e) {
-                    if (e instanceof AuthError) {
-                        // TODO !!!!! 
-                        res.status(401).json({ 
-                            type: "error", 
-                            message: e.message,
-                        });
-                        return;
-                    }
-                    throw e;
-                }
+            try {
+                await provider.callback(authContext);
+            } catch (error) {
+                if (error instanceof AuthError)
+                    throw errors.UNAUTHORIZED({
+                        message: error.message,
+                    });
+                throw error;
             }
-        },
-    );
 
-    const middleware: IAuthMiddleware = (req, res, next) => {
-        return router(req, res, next);
-    };
-    middleware.protect = (handler) => {
-        authCallbacks.add(handler);
-        return middleware;
-    };
-
-    return middleware;
+            await config.onAuthSuccess?.(authContext);
+        }),
+    });
 }
-

@@ -1,151 +1,165 @@
-import "@patternfly/react-core/dist/styles/base.css";
-
 import React from "react";
-import P from "@patternfly/react-core";
+import * as P from "@patternfly/react-core";
+import * as PIcons from "@patternfly/react-icons";
+import "@patternfly/react-core/dist/styles/base.css";
+import { ContractRouterClient } from "@orpc/contract";
+import { safe } from "@orpc/client";
+import { AppAPIContract } from "@wagateway/api/lib/app";
+import { AuthType, AuthInfo } from "@wagateway/api/lib/auth";
 
-import {
-  LoginFooterItem,
-  LoginForm,
-  LoginMainFooterBandItem,
-  LoginMainFooterLinksItem,
-  LoginPage,
-  ListItem,
-  ListVariant,
-  Button,
-  Flex,
-  ActionList,
-  ActionListItem,
-} from "@patternfly/react-core";
-import ExclamationCircleIcon from "@patternfly/react-icons/dist/esm/icons/exclamation-circle-icon";
-import GoogleIcon from "@patternfly/react-icons/dist/esm/icons/google-icon";
-import GithubIcon from "@patternfly/react-icons/dist/esm/icons/github-icon";
+import { Select, SelectList, SelectOption } from "./ui/select";
 
 
-export const LoginPageHideShowPassword: React.FunctionComponent = () => {
-  const [showHelperText, setShowHelperText] = React.useState(false);
-  const [username, setUsername] = React.useState("");
-  const [isValidUsername, setIsValidUsername] = React.useState(true);
-  const [password, setPassword] = React.useState("");
-  const [isValidPassword, setIsValidPassword] = React.useState(true);
-  const [isRememberMeChecked, setIsRememberMeChecked] = React.useState(false);
+// TODO
+export interface AuthDialogProps {
+    authRef: string;
+    apiClient: ContractRouterClient<typeof AppAPIContract>;
+    onAuthSuccess?: () => Promise<void>;
+}
 
-  const handleUsernameChange = (
-    _event: React.FormEvent<HTMLInputElement>,
-    value: string
-  ) => {
-    setUsername(value);
-  };
+export interface AuthDialogConstructor {
+    type: AuthType;
+    // TODO
+    (props: AuthDialogProps): React.ReactNode;
+}
 
-  const handlePasswordChange = (
-    _event: React.FormEvent<HTMLInputElement>,
-    value: string
-  ) => {
-    setPassword(value);
-  };
 
-  const onRememberMeClick = () => {
-    setIsRememberMeChecked(!isRememberMeChecked);
-  };
+export interface LoginScreenProps {
+    apiClient: ContractRouterClient<typeof AppAPIContract>;
+    onAuthSuccess?: () => Promise<void>;
+    authDialogConstructors?: AuthDialogConstructor[];
+}
 
-  const onLoginButtonClick = (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ) => {
-    event.preventDefault();
-    setIsValidUsername(!!username);
-    setIsValidPassword(!!password);
-    setShowHelperText(!username || !password);
-  };
+export const LoginScreen: React.FunctionComponent<LoginScreenProps>
+    = (props) => {
+        // TODO optimize
+        const authDialogConstructorMap = new Map<AuthType, AuthDialogConstructor>(
+            [
+                PasswordAuthDialog,
+                ...(props.authDialogConstructors ?? [])
+            ].map((constructor) => [constructor.type, constructor])
+        );
 
-  const socialMediaLoginContent = (
-    <React.Fragment>
-      <LoginMainFooterLinksItem>
-        <Button
-          variant="plain"
-          aria-label="Login with Google"
-          icon={<GoogleIcon />}
-        />
-      </LoginMainFooterLinksItem>
-      <LoginMainFooterLinksItem>
-        <Button
-          variant="plain"
-          aria-label="Login with Github"
-          icon={<GithubIcon />}
-        />
-      </LoginMainFooterLinksItem>
-    </React.Fragment>
-  );
+        const [authInfos, setAuthInfos] = React.useState<AuthInfo[]>();
 
-  const signUpForAccountMessage = (
-    <LoginMainFooterBandItem>
-      Need an account? <a href="https://www.patternfly.org/">Sign up.</a>
-    </LoginMainFooterBandItem>
-  );
+        React.useEffect(() => {
+            // TODO
+            props.apiClient.auth.info()
+                .then((res) => {
+                    setAuthInfos(res.callbacks);
+                });
+        }, [props.apiClient]);
 
-  const forgotCredentials = (
-    <LoginMainFooterBandItem>
-      <a href="https://www.patternfly.org/">Forgot username or password?</a>
-    </LoginMainFooterBandItem>
-  );
+        // TODO
+        const [authID, setAuthID] = React.useState<any | null>();
+        React.useEffect(() => {
+            if (authInfos != null) {
+                setAuthID(Object.keys(authInfos)[0]);
+            }
+        }, [authInfos]);
 
-  const listItem = (
-    <React.Fragment>
-      <ListItem>
-        <LoginFooterItem href="https://www.patternfly.org/">
-          Terms of Use{" "}
-        </LoginFooterItem>
-      </ListItem>
-      <ListItem>
-        <LoginFooterItem href="https://www.patternfly.org/">
-          Help
-        </LoginFooterItem>
-      </ListItem>
-      <ListItem>
-        <LoginFooterItem href="https://www.patternfly.org/">
-          Privacy Policy
-        </LoginFooterItem>
-      </ListItem>
-    </React.Fragment>
-  );
+        const AuthDialog = (
+            authInfos != null && authID != null
+                ? authDialogConstructorMap.get(authInfos?.[authID]?.type)
+                : null
+        );
+        return (
+            <P.LoginPage
+                headerUtilities={
+                    <Select
+                        autoClose={true}
+                        label={authID != null ? authInfos?.[authID]?.displayName : null}
+                        aria-label="Select an authentication method."
+                        selection={authID}
+                        onSelect={(value) => { setAuthID(value); }}
+                    >
+                        <SelectList>{
+                            Object.entries(authInfos ?? {})
+                                .map(([authRef, authInfo]) => <SelectOption key={authRef} value={authRef}>{
+                                    authInfo.displayName ?? `${authInfo.type}: ${authInfo.ref}` ?? authRef
+                                }</SelectOption>)
+                        }</SelectList>
+                    </Select>
+                }
+                loginTitle="Log in to your account"
+                // TODO !!!!!
+                loginSubtitle={<>
+                    Enter your credentials to access <strong>Application</strong>.
+                </> as any}
+                //   brandImgSrc={brandImg}
+                //   brandImgAlt="PatternFly logo"    
+                // footerListVariants={ListVariant.inline}
+                // footerListItems={listItem}
+                // textContent="This is placeholder text only. Use this area to place any information or introductory message about your application that may be relevant to users."
+                // socialMediaLoginContent={socialMediaLoginContent}
+                // socialMediaLoginAriaLabel="Log in with social media"
+                // signUpForAccountMessage={signUpForAccountMessage}
+                // forgotCredentials={forgotCredentials}
+            >{
+                    AuthDialog != null && authInfos?.[authID] != null
+                        ? <AuthDialog
+                            apiClient={props.apiClient}
+                            authRef={authInfos[authID].ref}
+                            onAuthSuccess={props.onAuthSuccess}
+                        />
+                        : null
+                }</P.LoginPage>
+        );
+    };
 
-  const loginForm = (
-    <LoginForm
-      showHelperText={showHelperText}
-      helperText="Invalid login credentials."
-      helperTextIcon={<ExclamationCircleIcon />}
-      usernameLabel="Username"
-      usernameValue={username}
-      onChangeUsername={handleUsernameChange}
-      isValidUsername={isValidUsername}
-      passwordLabel="Password"
-      passwordValue={password}
-      isShowPasswordEnabled
-      onChangePassword={handlePasswordChange}
-      isValidPassword={isValidPassword}
-      rememberMeLabel="Keep me logged in for 30 days."
-      isRememberMeChecked={isRememberMeChecked}
-      onChangeRememberMe={onRememberMeClick}
-      onLoginButtonClick={onLoginButtonClick}
-      loginButtonLabel="Log in"
-    />
-  );
+export const PasswordAuthDialog
+    : React.FunctionComponent<AuthDialogProps> & AuthDialogConstructor
+    = (props: AuthDialogProps) => {
+        const [errorMessage, setErrorMessage] = React.useState<string | null>();
 
-  return (
-    <P.LoginPage
-    //   brandImgSrc={brandImg}
-    //   brandImgAlt="PatternFly logo"    
-      footerListVariants={ListVariant.inline}
-      footerListItems={listItem}
-      textContent="This is placeholder text only. Use this area to place any information or introductory message about your application that may be relevant to users."
-      loginTitle="Log in to your account"
-      loginSubtitle={<>
-      Enter your <strong>TODO</strong> credentials to access <strong>Application</strong>.
-      </>}
-      socialMediaLoginContent={socialMediaLoginContent}
-      socialMediaLoginAriaLabel="Log in with social media"
-      signUpForAccountMessage={signUpForAccountMessage}
-      forgotCredentials={forgotCredentials}
-    >
-      {loginForm}
-    </P.LoginPage>
-  );
-};
+        const [username, setUsername] = React.useState<string>();
+        const [password, setPassword] = React.useState<string>();
+
+        return (
+            <P.LoginForm
+                helperText={errorMessage}
+                helperTextIcon={<PIcons.ExclamationCircleIcon />}
+                showHelperText={errorMessage != null}
+                usernameLabel="Username"
+                usernameValue={username}
+                onChangeUsername={(_event, value) => setUsername(value)}
+                passwordLabel="Password"
+                passwordValue={password}
+                onChangePassword={(_event, value) => setPassword(value)}
+                // isShowPasswordEnabled
+                loginButtonLabel="Log in"
+                onLoginButtonClick={async (event) => {
+                    event.preventDefault();
+
+                    // TODO 
+                    if (username == null) {
+                        setErrorMessage("Username is required.");
+                        return;
+                    }
+                    if (password == null) {
+                        setErrorMessage("Password is required.");
+                        return;
+                    }
+
+                    const { error } = await safe(props.apiClient.auth.callback({
+                        type: "password",
+                        ref: props.authRef,
+                        username, 
+                        password,
+                    }));
+                    if (error != null) {
+                        setErrorMessage(error.message);
+                        return;
+                    }
+
+                    // TODO
+                    setErrorMessage(null);
+                    // TODO !!!!!
+                    await props.onAuthSuccess?.();
+                }}
+            // rememberMeLabel="Keep me logged in for 30 days."
+            // onChangeRememberMe={() => {}}
+            />
+        );
+    };
+PasswordAuthDialog.type = "password";

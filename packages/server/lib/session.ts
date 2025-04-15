@@ -1,6 +1,5 @@
 import Express from "express";
 import ExpressSession from "express-session";
-import { APIResponseBody } from "./std/api";
 
 
 export interface SessionData {
@@ -97,53 +96,27 @@ export function SessionMiddleware(config: {
     return middleware;
 }
 
-// TODO
-export function SessionManagerMiddleware(config: {
+
+import { implement } from "@orpc/server";
+import { SessionManagerAPIContract } from "@wagateway/api/lib/session";
+
+
+export function SessionManagerAPIImpl(config: {
     sessionManager: ISessionManager;
-}): Express.RequestHandler {
-    const router = Express.Router();
-
-    // '/session/:id'
-
-    router.get(
-        "/current-session",
-        async (req, res: Express.Response<APIResponseBody>) => {
-            const sessionData = await config.sessionManager.query(req);
-            if (sessionData == null) {
-                res.status(404).json({
-                    type: "error",
-                    message: "Session not found",
-                });
-                return;
-            }
-            res.status(200).json({
-                type: "data",
-                // TODO get userInfo !!!!!!
-                user: sessionData.user,
-            });
+}) {
+    const os = implement(SessionManagerAPIContract)
+        .$context<{ req: Express.Request }>();
+    
+    return os.router({
+        info: os.info.handler(async () => {
+            return {
+                version: 0,
+            };
+        }),
+        instance: {
+            destroy: os.instance.destroy.handler(async ({ context }) => {
+                await config.sessionManager.destroy(context.req);
+            }),
         },
-    );
-
-    // TODO redirect?
-    router.delete(
-        "/current-session",
-        async (req, res: Express.Response<APIResponseBody>) => {
-            // TODO try catch
-            await config.sessionManager.destroy(req);
-            res.status(204).json();
-
-            // TODO
-            // req.session.destroy((err) => {
-            //     // TODO
-            //     if (err != null)
-            //         throw err;
-            //     res.status(204).send();
-            // });
-        },
-    );
-
-    return (req, res, next) => {
-        return router(req, res, next);
-    };
+    });
 }
-

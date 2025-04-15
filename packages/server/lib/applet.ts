@@ -70,87 +70,59 @@ export interface IAppletManager {
     serve?(ref: string): Promise<Express.RequestHandler>;
 }
 
-
 import { ISessionManager } from "./session";
-import { APIResponseBody } from "./std/api";
 
-// TODO
-export function AppletManagerMiddleware(
+import { implement } from "@orpc/server";
+import { AppletManagerAPIContract } from "@wagateway/api/lib/applet";
+
+
+export function AppletManagerAPIImpl(
     config: { 
         sessionManager: ISessionManager;
         appletManager: IAppletManager; 
     }
-): Express.RequestHandler {
-    const router = Express.Router();
+) {
+    // TODO
+    const os = implement(AppletManagerAPIContract)
+        .$context<{ req: Express.Request }>();
 
-    router.get(
-        "/current-applet",
-        async (req, res: Express.Response<APIResponseBody | {
-            ref: string;
-            status: "running" | "stopped";
-            // TODO status
-        }>) => {
-            const sessionData = await config.sessionManager.query(req);
-            if (sessionData == null) {
-                res.status(404).json({
-                    type: "error",
-                    message: "Session not found",
-                }); // TODO !!!!!!!
-                return;
-            }
-            // TODO interface !!!!!!!
-            res.status(204).json({
-                type: "data",
-                ref: sessionData.appletRef,
-                // TODO status
-            });
+    return os.router({
+        info: os.info.handler(() => {
+            return {
+                version: 0,
+            };
+        }),
+        // TODO
+        instance: {
+            create: os.instance.create.handler(
+                async ({ input }) => {
+                    if (input.ref != null)
+                        throw new Error("TODO ref not supported");
+                    throw new Error("TODO not implemented");
+                }
+            ),
+            destroy: os.instance.destroy.handler(
+                async ({ input, context }) => {
+                    if (input.ref != null)
+                        throw new Error("TODO ref not supported");
+
+                    // TODO
+                    const sessionData 
+                        = await config.sessionManager.query(context.req);
+                    if (sessionData == null)
+                        throw new Error("Session not found");
+
+                    if (sessionData.appletRef == null)
+                        throw new Error("Applet not found");
+                    await config.appletManager.destroy(sessionData.appletRef);
+                }
+            ),
+            // subscribe: {
+            //     statechange: os.instance.subscribe.statechange.handler(async () => {
+            //         // TODO
+            //         return {};
+            //     }),
+            // },
         }
-    );
-
-    // TODO confirm
-    router.delete(
-        "/current-applet",
-        async (req, res: Express.Response<APIResponseBody>) => {
-            const sessionData = await config.sessionManager.query(req);
-            if (sessionData == null) {
-                res.status(404).json({
-                    type: "error",
-                    message: "Session not found",
-                });
-                return;
-            }
-            
-            if (sessionData.appletRef == null) {
-                // TODO
-                res.status(404).json({
-                    type: "error",
-                    message: "Applet not found",
-                });
-                return;
-            }
-            await config.appletManager.destroy(sessionData.appletRef);
-            res.status(204).json();
-        }
-    );
-
-    // router.post(
-    //     '/applets',
-    //     async (_, res: Express.Response<{}>) => {
-    //         // TODO
-    //         const ref = await config.appletManager.create(null, { user: ... });
-    //         res.status(201).json(ref);
-    //     },
-    // );
-
-    // router.delete(
-    //     '/applets/:ref',
-    //     async (req: Express.Request, res) => {
-    //         // TODO confirm query
-    //         //req.query.confirm;
-    //         await config.appletManager.destroy(req.params.ref);
-    //         res.status(204).end();
-    //     },
-    // );
-
-    return router;
+    });
 }

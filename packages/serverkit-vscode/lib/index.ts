@@ -31,8 +31,9 @@ export function VSCodeAppletSpawner(): IAppletSpawner {
         });
     };
     // TODO https://github.com/microsoft/vscode/pull/210455
-    spawner.onRequest = (req) => {
+    spawner.onRequest = (req, _res, next) => {
         req.headers["X-Forwarded-Prefix"] = req.baseUrl;
+        next();
     };
 
     return spawner;

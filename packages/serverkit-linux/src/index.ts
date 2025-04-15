@@ -1,8 +1,8 @@
 import Z from "zod";
 import { IKit } from "@wagateway/server/src";
 
-import { SystemdAppletManager } from "../lib/applet";
-import { PAMPasswdAuthHandler } from "../lib/auth";
+import { SystemdAppletManager } from "../lib/applet-systemd";
+import { PAMPasswdAuthProvider } from "../lib/auth-pam";
 
 
 const systemdAppletManagerSchema = Z.object({
@@ -25,7 +25,7 @@ const systemdAppletManagerSchema = Z.object({
             if (!/^[a-zA-Z0-9._-]+$/.test(name))
                 console.warn(
                     `Base unit name with special characters detected, `
-                    + `attempts to use it in systemd may fail: ${name}`
+                    + `attempts to use it in systemd may fail: ${name}.`
                 );
             return true;
         })
@@ -69,7 +69,7 @@ export default ((registry) => {
     registry.auth.handlers.set(
         "pam:passwd",
         async (config) => {
-            return PAMPasswdAuthHandler(
+            return PAMPasswdAuthProvider(
                 pamAuthHandlerSchema.parse(config),
             );
         }

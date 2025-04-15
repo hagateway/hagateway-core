@@ -12,6 +12,7 @@
     },
     "scripts": {
         "build": "tsc",
+        "watch": "tsc --watch",
         "test": "echo TODO impl && exit 1"
     },
     "author": "",

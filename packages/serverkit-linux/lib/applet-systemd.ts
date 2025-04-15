@@ -57,7 +57,7 @@ class SystemdDBus {
     ) {
         const man = await this.Manager();
         const props = await this.Properties(
-            man.GetUnit(unitName)
+            await man.GetUnit(unitName)
         );
 
         try {
@@ -71,7 +71,10 @@ class SystemdDBus {
                     break;
                 }
             }
-            throw err;
+            throw new Error(
+                `An error occurred while querying unit property over DBus: ${unitName}`, 
+                { cause: err },
+            );
         }
     }
 }
@@ -274,21 +277,32 @@ export class SystemdAppletManager implements IAppletManager {
             props.push([
                 "RuntimeDirectory", 
                 new DBus.Variant(
-                    's', 
+                    'as', 
+                    // TODO warn
                     // TODO https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html#RuntimeDirectory=
-                    Path.relative(useRuntimeDirectory(), "/run"),
+                    [Path.relative("/run", useRuntimeDirectory())],
                 ),
             ]);
 
         const man = await this.dbus.Manager();
 
+        // TODO
+        console.log("TODO pre: create applet unit", ref, props);
+
         // TODO !!!!!
-        await man.StartTransientUnit(
-            SystemdRefOps.encode(ref, this.baseUnitName), // name
-            "fail", // mode
-            props, // properties
-            [], // aux
-        );
+        try {
+            await man.StartTransientUnit(
+                SystemdRefOps.encode(ref, this.baseUnitName), // name
+                "fail", // mode
+                props, // properties
+                [], // aux
+            );            
+        } catch (error) {
+            throw new Error(
+                `Failed to to create applet: ${ref}`,
+                { cause: error },
+            );
+        }
 
         return ref;
     }
@@ -315,16 +329,19 @@ export class SystemdAppletManager implements IAppletManager {
         try {
             await man.GetUnit(SystemdRefOps.encode(ref, this.baseUnitName));
             return true;
-        } catch (err) {
-            if (err instanceof DBus.DBusError) {
-                switch (err.type) {
+        } catch (error) {
+            if (error instanceof DBus.DBusError) {
+                switch (error.type) {
                 case SystemdDBus.Error.NoSuchUnit:
                     return false;
                 default:
                     break;
                 }
             }
-            throw err;
+            throw new Error(
+                `An error occurred while checking if ref exists: ${ref}`, 
+                { cause: error },
+            );
         }
     }
 
@@ -346,7 +363,7 @@ export class SystemdAppletManager implements IAppletManager {
 
     // TODO !!!! cache!!!!!!!
     async serve(ref: string): Promise<Express.RequestHandler> {
-        if (!this.has(ref))
+        if (!await this.has(ref))
             throw new Error("TODO");
 
         const unitData = await this.getUnitData(ref);
@@ -357,7 +374,7 @@ export class SystemdAppletManager implements IAppletManager {
             };
         }
 
-        // TODO !!!!
+        // TODO !!!! wait for socket !!!!!!
         const proxyOptions: ProxyOptions = {
             /**
              * NOTE this must be false to prevent
@@ -390,7 +407,7 @@ export class SystemdAppletManager implements IAppletManager {
         const router = Express.Router();
         for (const spawner of this.spawners) {
             if (spawner.onRequest != null)
-                router.use(spawner.onRequest);            
+                router.use(spawner.onRequest);
         }
         router.use((req, res, next) => {
             if (res.upgrade != null) {

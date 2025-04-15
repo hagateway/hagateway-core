@@ -9,6 +9,23 @@
 - `  "bin": "dist/src/cli.js",`
 - custom routes
 - success redirect
+- session backend!!!!!
+
+- TODO presets { "include": "@wagateway/preset-linux" }
+- TODO loginctl sessions
+
+
+- TODO migrate to hono 
+    - https://github.com/orgs/honojs/discussions/3588#discussioncomment-11503846
+
+
+```
+import { eventIterator } from '@orpc/server'
+    // subscribe: oc.output(
+    //     eventIterator(z.object({
+    //     }))
+    // ),
+```
 
 
 ```javascript

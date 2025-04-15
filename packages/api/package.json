@@ -1,0 +1,17 @@
+{
+  "name": "@wagateway/api",
+  "version": "0.0.0",
+  "description": "",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "echo TODO impl && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@orpc/contract": "^0.54.0"
+  }
+}

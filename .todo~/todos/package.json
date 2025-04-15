@@ -1,0 +1,26 @@
+{
+    "name": "@wagateway/todos",
+    "version": "0.0.0",
+    "description": "",
+    "files": [
+        "dist",
+        "lib",
+        "src"
+    ],
+    "scripts": {
+        "build": "tsc",
+        "start": "ts-node src/",
+        "test": "echo TODO impl && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@trpc/server": "^11.1.0",
+        "hono": "^4.7.6",
+        "http-upgrade-request": "^0.0.0"
+    },
+    "devDependencies": {
+        "ts-node": "^10.9.2",
+        "typescript": "^5.8.2"
+    }
+}

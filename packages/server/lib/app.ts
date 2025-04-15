@@ -1,3 +1,5 @@
+
+
 // TODO
 import Http from "http";
 import { UpgradeListener } from "http-upgrade-request";
@@ -5,17 +7,15 @@ import { UpgradeListener } from "http-upgrade-request";
 
 import Express from "express";
 
-import { SessionMiddleware, SessionManagerMiddleware, ISessionManager, SessionManager } from "./session";
-import { AuthManager, AuthMiddleware, IAuthHandler, IAuthManager } from "./auth";
-// TODO
-import { AppletManagerMiddleware, IAppletManager, IAppletSpawner } from "./applet";
+import { SessionMiddleware, ISessionManager } from "./session";
+import { IAuthManager } from "./auth";
+import { IAppletManager } from "./applet";
 
 
 import * as UUID from "uuid";
 
 
 import { IView, ViewLocals } from "./view";
-import { APIResponseBody } from "./std/api";
 
 
 export interface AppConfig {
@@ -23,6 +23,53 @@ export interface AppConfig {
     sessionManager: ISessionManager;
     appletManager: IAppletManager;
 }
+
+
+
+
+import { implement } from "@orpc/server";
+
+import { AppAPIContract } from "@wagateway/api/lib/app";
+
+import { AppletManagerAPIImpl } from "./applet";
+import { AuthAPIImpl } from "./auth";
+import { SessionManagerAPIImpl } from "./session";
+import { RPCHandler } from "@orpc/server/node";
+
+
+// TODO mv
+export function AppAPIImpl(config: AppConfig) {
+    const os = implement(AppAPIContract)
+        .$context<{ req: Express.Request }>();
+    
+    return os.router({
+        info: os.info.handler(() => {
+            return {
+                version: 0,
+            };
+        }),
+        appletManager: AppletManagerAPIImpl({
+            sessionManager: config.sessionManager,
+            appletManager: config.appletManager,
+        }),
+        auth: AuthAPIImpl({
+            authManager: config.authManager,
+            onAuthSuccess: async (context) => {
+                if (context.result.user == null) {
+                    throw new Error("TODO");
+                }
+                config.sessionManager.create(context.req, { 
+                    user: context.result.user, 
+                    appletRef: context.result.user,
+                });
+            },
+        }),
+        sessionManager: SessionManagerAPIImpl({
+            sessionManager: config.sessionManager,
+        }),
+    });
+}
+
 
 export interface IApp extends Express.Application {
     useApi(path: string): IApp;
@@ -35,64 +82,53 @@ export function App({
     sessionManager,
     appletManager,
 }: AppConfig): IApp {
+    function getMountPathSingle(app: Express.Application) {
+        switch (typeof app.mountpath) {
+            case "string":
+                return app.mountpath;
+            case "object":
+                if (Array.isArray(app.mountpath))
+                    return app.mountpath[0];
+        }
+        throw new Error(
+            `Invalid mount points: ${app.mountpath}`
+        );
+    }
+
     // TODO !!!!
     const app: IApp = Express() as any;
-    app.use(SessionMiddleware({ 
-        sessionManager,
-        secret: UUID.v4(), // TODO
-    }));
-
     const onUnauthorized = Express.Router();
+    // TODO const onErrorDisplay = Express.Router();
 
     var apiApp: Express.Application | null = null;
+    var appletApp: Express.Application | null = null;
+
+    app.use(SessionMiddleware({ 
+        sessionManager,
+        secret: UUID.v4(), // TODO !!!!
+    }));
+
     // TODO
     app.useApi = (path: string) => {
         if (apiApp != null)
             throw new Error(`API already mounted to this app at ${apiApp.mountpath}`);
+
+        const handler = new RPCHandler(AppAPIImpl({
+            authManager,
+            sessionManager,
+            appletManager,
+        }));
+
         app.use(
-            path, 
-            apiApp = Express()
-                .get(
-                    "/",
-                    async (_, res: Express.Response<APIResponseBody>) => {
-                        res.status(200).json({
-                            type: "data",
-                            version: "1.0.0",
-                        });
-                    },
-                )
-                .use(
-                    "/auth",
-                    AuthMiddleware({ authManager })
-                    .protect(async (authRes, res) => {
-                        sessionManager.create(res.req, { 
-                            user: authRes.user, 
-                            appletRef: authRes.user,
-                        });
-                    }),
-                )
-                .use(
-                    "/session-manager",
-                    SessionManagerMiddleware({ sessionManager }),
-                )
-                .use(
-                    "/applet-manager",
-                    AppletManagerMiddleware({ sessionManager, appletManager }),
-                )
+            path,
+            apiApp = Express().use(async (req, res) => {
+                await handler.handle(req, res, {
+                    prefix: (req.baseUrl || "/") as `/${string}`,
+                    context: { req },
+                });
+            })
         );
         return app;
-    };
-    const getApiBasePath = () => {
-        if (apiApp == null) {
-            throw new Error("API not mounted. Did you call `useApi`?");
-        }
-        // TODO !!!!!!
-        if (typeof apiApp.mountpath !== "string")   
-            throw new Error(
-                `Confused by multiple API mount points: `
-                + `${apiApp.mountpath}`
-            );
-        return apiApp.mountpath;
     };
 
     app.useView = (path: string, view: IView) => {
@@ -100,15 +136,19 @@ export function App({
         app.use(path, viewApp);
 
         const getViewLocals = (): ViewLocals => {
-            if (typeof viewApp.mountpath !== "string")   
+            if (apiApp == null)
                 throw new Error(
-                    `Confused by multiple view mount points: `
-                    + `${viewApp.mountpath}`
+                    "`useView` requires an API to be mounted; "
+                    + "Did you call `useApi`?"
                 );
-
             return {
-                baseApiPath: getApiBasePath(),
-                baseViewPath: viewApp.mountpath,
+                routes: {
+                    api: getMountPathSingle(apiApp),
+                    view: getMountPathSingle(viewApp),
+                    applet: appletApp != null 
+                        ? getMountPathSingle(appletApp) 
+                        : null,
+                },
             };
         };  
 
@@ -152,10 +192,10 @@ export function App({
             }
 
             if (sessionData.appletRef == null)
-                throw new Error("appletRef auto-assignment not supported");
+                throw new Error("Applet ref auto-assignment not supported");
             
             // TODO should be done thru the api??
-            if (!appletManager.has(sessionData.appletRef))
+            if (!await appletManager.has(sessionData.appletRef))
                 // TODO
                 await appletManager.create(
                     sessionData.appletRef, 

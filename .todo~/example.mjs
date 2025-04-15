@@ -5,9 +5,9 @@ export default {
         "@wagateway/serverkit-vscode",
     ],
     // net: "/run/wagateway/app.sock",
-    net: { host: "localhost", port: 8080 },
+    net: { host: "localhost", port: 3080 },
     auth: { 
-        handlers: [
+        providers: [
             // "pam:passwd",
             { 
                 $: "pam:passwd",  

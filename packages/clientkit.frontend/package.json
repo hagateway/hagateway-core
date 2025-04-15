@@ -10,18 +10,25 @@
     "src"
   ],
   "scripts": {
-    "build": "node esbuild.mjs",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "test": "echo TODO impl && exit 1"
   },
   "author": "",
   "license": "ISC",
-  "devDependencies": {
+  "dependencies": {
+    "@orpc/client": "^0.54.0",
+    "@orpc/contract": "^0.54.0",
     "@patternfly/react-core": "^6.1.0",
     "@patternfly/react-icons": "^6.1.0",
-    "@types/react": "^18.3.20",
-    "@types/react-dom": "^18.3.5",
-    "esbuild": "^0.25.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.20",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "parcel": "^2.14.4"
   }
 }

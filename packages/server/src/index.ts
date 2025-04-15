@@ -4,7 +4,7 @@ import * as Glob from "glob";
 import Yargs from "yargs";
 import * as YargsHelper from "yargs/helpers";
 
-import { AuthManager, IAuthHandler } from "../lib/auth";
+import { AuthManager, IAuthProvider } from "../lib/auth";
 import { SessionManager } from "../lib/session";
 import { IAppletSpawner, IAppletManager } from "../lib/applet";
 import { IView } from "../lib/view";
@@ -13,7 +13,7 @@ import { App, Server } from "../lib/app";
 
 export interface IKitRegistry {
     auth: {
-        handlers: Map<string, (config?: any) => Promise<IAuthHandler>>;
+        handlers: Map<string, (config?: any) => Promise<IAuthProvider>>;
     };
     session: {};
     applet: {
@@ -87,7 +87,7 @@ export interface RunConfig {
     kits?: (string | IKit)[];
     net: string | { host: string; port: number };
     auth: { 
-        handlers: (string | RunConfig.Configurable | IAuthHandler)[]; 
+        providers: (string | RunConfig.Configurable | IAuthProvider)[]; 
     };
     // session: { store: string };
     applet: { 
@@ -97,9 +97,6 @@ export interface RunConfig {
     };
     view?: string | RunConfig.Configurable | IView;
 }
-
-// TODO rm!!!!!
-// import TODO from '@wagateway/clientkit'
 
 export function Main() {
     const kitRegistry = KitRegistry();
@@ -212,7 +209,7 @@ export function Main() {
                     break;
                 }
                 case "auth": {
-                    for (const handlerRef of spec.auth!.handlers ?? []) {
+                    for (const handlerRef of spec.auth!.providers ?? []) {
                         const handler = await RunConfig.instantiate(
                             handlerRef,
                             kitRegistry.auth.handlers,

@@ -5,7 +5,6 @@ import P from '@patternfly/react-core';
 
 import { Button, Modal, ModalBody, ModalHeader, ModalFooter, ModalVariant, Flex, LoginPage } from '@patternfly/react-core';
 import { ArrowRightIcon } from "@patternfly/react-icons";
-import { Api } from "../api";
 
 export const ConfirmModal = () => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -40,7 +39,6 @@ export const ConfirmModal = () => {
 
 
 export interface DashboardPageProps {
-  api: Api;
 }
 
 export const DashboardPage: React.FunctionComponent<DashboardPageProps> 

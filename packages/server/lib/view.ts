@@ -2,8 +2,11 @@ import Express from "express";
 
 
 export interface ViewLocals extends Express.Locals {
-    baseApiPath: string;
-    baseViewPath: string;
+    routes: {
+        api: string;
+        view: string;
+        applet?: string | null;
+    };
 }
 
 export type ViewRequestHandler = Express.RequestHandler<
