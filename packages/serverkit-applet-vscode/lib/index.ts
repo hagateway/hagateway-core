@@ -26,7 +26,7 @@ export function VSCodeAppletSpawner(): IAppletSpawner {
                 // TODO
                 "--server-base-path", spec.baseUrl,
                 "--socket-path", proxySpec.transport.socketPath,
-                "--verbose", "--log", "trace",
+                // "--verbose", "--log", "trace",
             ],
         });
     };

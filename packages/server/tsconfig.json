@@ -4,6 +4,7 @@
     // "allowImportingTsExtensions": true,
     // "emitDeclarationOnly": true,
     // "experimentalDecorators": true,
+    "skipLibCheck": true,
     "exactOptionalPropertyTypes": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",

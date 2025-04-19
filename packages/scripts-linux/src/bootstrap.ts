@@ -17,15 +17,14 @@ export async function bootstrap(config: BootstrapConfig) {
         Path.join(config.prefix, "package.json"),
         JSON.stringify({
             "name": "@hagateway/user-deployment",
-            "version": "0.0.0",
             "private": true,
             "dependencies": {
-                "@hagateway/server": "0.0.1-alpha.0",
-                "@hagateway/scripts-linux": "0.0.1-alpha.0",
-                "@hagateway/serverkit-linux": "0.0.1-alpha.0",
+                "@hagateway/server": "*",
+                "@hagateway/scripts-linux": "*",
+                "@hagateway/serverkit-linux": "*",
             },
             "scripts": {
-                "start": "@hagateway/server serve",
+                "start": "npx @hagateway/server serve",
             },
         }, null, 2),
         { encoding: "utf8" },

@@ -6,6 +6,12 @@
 npm version prerelease --preid=alpha
 ```
 
+```
+        "build": "yarn workspaces foreach --topological run build",
+        "prepare": "yarn run build",
+        "release": "yarn workspaces foreach --topological --no-private npm publish --access public"
+```
+
 
 - require.resolve('./TODO.ipynb', {paths: ['/home/sysadmin/lab/wagateway/.todo~']})
 - wait until unix socket available

@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 
 import * as DBus from "dbus-next";
 

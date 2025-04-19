@@ -2,9 +2,19 @@
     "name": "hagateway-core",
     "private": true,
     "workspaces": [
+        "packages/api",
+        "packages/server",
+        "packages/serverkit-*",
+        "packages/clientkit.frontend",
+        "packages/clientkit",
+        "packages/scripts-*",
         "packages/*"
     ],
+    "devDependencies": {
+        "@changesets/cli": "^2.29.2"
+    },
     "scripts": {
-        "version:alpha": "npm version prerelease --preid=alpha --workspaces"
+        "build": "npm install && npm run build --workspaces",
+        "release": "npm install && npm publish --workspaces --access public"
     }
 }

@@ -2,6 +2,7 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": ".",
+    "skipLibCheck": true,
     // "allowImportingTsExtensions": true,
     // "emitDeclarationOnly": true,
     // "experimentalDecorators": true,

@@ -12,6 +12,7 @@
     "declaration": true,
     "sourceMap": true,
     "declarationMap": true,
+    "skipLibCheck": true,
   },
   "include": ["lib", "src"]
 }

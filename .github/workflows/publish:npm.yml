@@ -24,10 +24,9 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get install --yes libpam0g-dev
-          npm install
 
       - name: Publish packages
         run: |
-          npm publish --workspaces --access public
+          npm run release
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
