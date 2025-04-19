@@ -16,26 +16,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Setup pnpm
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 6.30.1
-
-      # Setup Node with GitHub Packages registry
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '22.x'
+          cache: 'npm'
           registry-url: 'https://npm.pkg.github.com'
-          cache: 'pnpm'
+          # Defaults to the user or organization that owns the workflow file
+          scope: '@wagateway'
 
       # TODO !!!!!
       - name: Install dependencies
-        run: pnpm install --no-lockfile
+        run: |
+          sudo apt-get install --yes libpam0g-dev
+          npm install
+      
+      # TODO
+      # - run: npm ci
 
       - name: Publish packages to GitHub Packages
         run: |
-          pnpm -r exec -- pnpm version prerelease --preid=dev.$(git rev-parse --short ${{ github.sha }})
-          pnpm -r publish --no-git-checks --tag dev
+          npm publish --workspaces --tag dev
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
