@@ -3,20 +3,19 @@
     "version": "0.0.0",
     "description": "",
     "files": [
-      "lib/",
-      "dist/"
+        "lib/",
+        "dist/"
     ],
     "exports": {
-      ".": "./dist/index.js"
+        ".": "./dist/index.js"
     },
     "scripts": {
-      "build": "tsc",
-      "test": "echo TODO && exit 1"
+        "build": "tsc",
+        "test": "echo TODO && exit 1"
     },
     "author": "",
     "license": "ISC",
     "devDependencies": {
-      "typescript": "^5.8.2"
+        "typescript": "^5.8.2"
     }
-  }
-  
+}

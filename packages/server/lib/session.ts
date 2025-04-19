@@ -1,5 +1,7 @@
+import Crypto from "node:crypto";
+
 import Express from "express";
-import ExpressSession from "express-session";
+import ExpressSession, { Store } from "express-session";
 
 
 export interface SessionData {
@@ -8,6 +10,14 @@ export interface SessionData {
 }
 
 export interface ISessionManager {
+    // TODO !!!!!!!
+    secrets?: {
+        enroll(secret: string | Buffer): Promise<void>;
+        demote(secret: string | Buffer): Promise<void>;
+        promote(secret: string | Buffer): Promise<void>;
+        invalidate(secret: string | Buffer): Promise<void>;
+    };
+    serve(req: Express.Request): Promise<void>;
     create(req: Express.Request, data: SessionData): Promise<void>;
     destroy(req: Express.Request): Promise<void>;
     has(req: Express.Request): Promise<boolean>;
@@ -24,6 +34,32 @@ export namespace SessionManager {
 
 // TODO !!!!!!
 export class SessionManager implements ISessionManager {
+    protected readonly sessionHandler: Express.RequestHandler;
+
+    constructor(config?: {
+        secret?: string | string[] | null;
+        store?: ExpressSession.Store;
+    }) {
+        this.sessionHandler = ExpressSession({
+            // TODO !!!!!! rotate
+            secret: config?.secret ?? Crypto.randomBytes(128),
+            resave: false,
+            saveUninitialized: false,
+            cookie: {
+                //secure: true,
+                //sameSite: 'strict',
+            },
+            store: config?.store,
+        });
+    }
+
+    async serve(req: Express.Request) {
+        // TODO
+        if (req.res == null || req.next == null)
+            throw new Error("TODO");
+        return this.sessionHandler(req, req.res, req.next);
+    }
+
     async create(req: Express.Request, data: SessionData) {
         const session: SessionManager.Session = req.session;
         if (session == null) 
@@ -69,36 +105,8 @@ export class SessionManager implements ISessionManager {
 }
 
 
-
-export interface ISessionMiddleware extends Express.RequestHandler {
-    // TODO
-}
-
-export function SessionMiddleware(config: {
-    sessionManager?: ISessionManager;
-    secret: string;
-}): ISessionMiddleware {
-    // TODO storage backend!!!!!!!!
-    const sessionHandler = ExpressSession({
-        secret: config.secret,
-        resave: false,
-        saveUninitialized: false,
-        cookie: {
-            //secure: true,
-            //sameSite: 'strict',
-        }
-    });
-
-    const middleware: ISessionMiddleware = (req, res, next) => {
-        return sessionHandler(req, res, next);
-    };
-    
-    return middleware;
-}
-
-
 import { implement } from "@orpc/server";
-import { SessionManagerAPIContract } from "@wagateway/api/lib/session";
+import { SessionManagerAPIContract } from "@wagateway/api/dist/lib/session";
 
 
 export function SessionManagerAPIImpl(config: {

@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+      "outDir": "dist",
+      "rootDir": ".",
+      // "allowImportingTsExtensions": true,
+      // "emitDeclarationOnly": true,
+      // "experimentalDecorators": true,
+      "exactOptionalPropertyTypes": true,
+      "module": "NodeNext",
+      "moduleResolution": "NodeNext",
+      "strict": true,
+      "declaration": true,
+      "sourceMap": true,
+      "declarationMap": true,
+    },
+    "include": ["index.ts", "src"]
+}

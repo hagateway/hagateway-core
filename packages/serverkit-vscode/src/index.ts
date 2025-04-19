@@ -1,6 +1,7 @@
-import { IKit } from "@wagateway/server/src";
+import { IKit } from "@wagateway/server/dist/src";
 
 import { VSCodeAppletSpawner } from "../lib";
+
 
 export default ((registry) => {
     registry.applet.spawners.set(

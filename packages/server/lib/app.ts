@@ -7,15 +7,21 @@ import { UpgradeListener } from "http-upgrade-request";
 
 import Express from "express";
 
-import { SessionMiddleware, ISessionManager } from "./session";
+import { ISessionManager } from "./session";
 import { IAuthManager } from "./auth";
 import { IAppletManager } from "./applet";
 
 
-import * as UUID from "uuid";
-
-
 import { IView, ViewLocals } from "./view";
+
+
+import { implement } from "@orpc/server";
+import { RPCHandler } from "@orpc/server/node";
+import { AppAPIContract } from "@wagateway/api/dist/lib/app";
+
+import { AppletManagerAPIImpl } from "./applet";
+import { AuthAPIImpl } from "./auth";
+import { SessionManagerAPIImpl } from "./session";
 
 
 export interface AppConfig {
@@ -25,19 +31,7 @@ export interface AppConfig {
 }
 
 
-
-
-import { implement } from "@orpc/server";
-
-import { AppAPIContract } from "@wagateway/api/lib/app";
-
-import { AppletManagerAPIImpl } from "./applet";
-import { AuthAPIImpl } from "./auth";
-import { SessionManagerAPIImpl } from "./session";
-import { RPCHandler } from "@orpc/server/node";
-
-
-// TODO mv
+// TODO mv?
 export function AppAPIImpl(config: AppConfig) {
     const os = implement(AppAPIContract)
         .$context<{ req: Express.Request }>();
@@ -103,10 +97,7 @@ export function App({
     var apiApp: Express.Application | null = null;
     var appletApp: Express.Application | null = null;
 
-    app.use(SessionMiddleware({ 
-        sessionManager,
-        secret: UUID.v4(), // TODO !!!!
-    }));
+    app.use((req) => sessionManager.serve(req));
 
     // TODO
     app.useApi = (path: string) => {

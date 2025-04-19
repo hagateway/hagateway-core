@@ -1,9 +1,6 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    // "allowImportingTsExtensions": true,
-    // "emitDeclarationOnly": true,
-    // "experimentalDecorators": true,
     "exactOptionalPropertyTypes": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
@@ -15,7 +12,5 @@
     //"lib": ["ESNext"],
     "outDir": "dist",
   },
-  "include": [
-    "lib/**/*.ts",
-  ]
+  "include": ["lib", "src"]
 }

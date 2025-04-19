@@ -1,5 +1,5 @@
 import Z from "zod";
-import { IKit } from "@wagateway/server/src";
+import { IKit } from "@wagateway/server/dist/src";
 
 import { SystemdAppletManager } from "../lib/applet-systemd";
 import { PAMPasswdAuthProvider } from "../lib/auth-pam";
@@ -66,7 +66,7 @@ export default ((registry) => {
         }
     );
 
-    registry.auth.handlers.set(
+    registry.auth.providers.set(
         "pam:passwd",
         async (config) => {
             return PAMPasswdAuthProvider(

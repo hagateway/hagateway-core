@@ -1,0 +1,40 @@
+name: Publish to GitHub Packages
+
+on:
+  push:
+    branches:
+      - main  # or your release branch
+  workflow_dispatch:  # allows manual trigger
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write  # required to publish to GitHub Packages
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Setup pnpm
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 6.30.1
+
+      # Setup Node with GitHub Packages registry
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22.x'
+          registry-url: 'https://npm.pkg.github.com'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Publish packages to GitHub Packages
+        run: |
+          pnpm -r exec -- pnpm version prerelease --preid=dev.$(git rev-parse --short ${{ github.sha }})
+          pnpm -r publish --no-git-checks --tag dev
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

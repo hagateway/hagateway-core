@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": ".",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "rewriteRelativeImportExtensions": true,
@@ -10,9 +12,6 @@
     "declaration": true,
     "sourceMap": true,
     "declarationMap": true,
-
-    //"lib": ["ESNext"],
-    "outDir": "dist",
   },
   "include": ["lib", "src"]
 }

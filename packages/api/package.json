@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "",
   "files": [
-    "lib"
+    "dist"
   ],
   "scripts": {
     "build": "tsc",
@@ -13,5 +13,8 @@
   "license": "ISC",
   "dependencies": {
     "@orpc/contract": "^0.54.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
   }
 }

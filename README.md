@@ -1,6 +1,16 @@
 # 
 
 ## TODOs
+- require.resolve('./TODO.ipynb', {paths: ['/home/sysadmin/lab/wagateway/.todo~']})
+- wait until unix socket available
+- import relative to config dir
+- TODO check if config permission too open
+- runtime/state directory std
+
+- serverkit-session-sql
+
+- offer default `config`
+- `crypto.randomBytes(32)` for secret
 
 - doc esm req for all kits and modules
 - `req.baseUrl` X-Forwarded-Prefix

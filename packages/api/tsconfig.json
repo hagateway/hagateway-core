@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "outDir": "dist",
+    "rootDir": ".",
     // "allowImportingTsExtensions": true,
     // "emitDeclarationOnly": true,
     // "experimentalDecorators": true,
@@ -11,9 +12,6 @@
     "declaration": true,
     "sourceMap": true,
     "declarationMap": true,
-
-    //"lib": ["ESNext"],
-    "outDir": "dist",
   },
-  "include": ["lib", "src"]
+  "include": ["lib"]
 }

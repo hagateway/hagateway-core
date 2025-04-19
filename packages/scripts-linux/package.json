@@ -1,7 +1,8 @@
 {
-    "name": "@wagateway/todos",
+    "name": "@wagateway/scripts-linux",
     "version": "0.0.0",
     "description": "",
+    "bin": "./dist/index.js",
     "files": [
         "dist",
         "lib",
@@ -9,18 +10,14 @@
     ],
     "scripts": {
         "build": "tsc",
-        "start": "ts-node src/",
+        "start": "node dist/src",
         "test": "echo TODO impl && exit 1"
     },
-    "author": "",
-    "license": "ISC",
     "dependencies": {
-        "@trpc/server": "^11.1.0",
-        "hono": "^4.7.6",
-        "http-upgrade-request": "^0.0.0"
+        "ini": "^5.0.0",
+        "yargs": "^17.7.2"
     },
     "devDependencies": {
-        "ts-node": "^10.9.2",
-        "typescript": "^5.8.2"
+        "@types/ini": "^4.1.1"
     }
 }

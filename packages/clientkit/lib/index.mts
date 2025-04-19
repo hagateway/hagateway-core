@@ -3,7 +3,7 @@ import Fs from "node:fs/promises";
 import Express from "express";
 import ExpressSlashes from "connect-slashes";
 import { JSDOM } from "jsdom";
-import { IView, ViewRequestHandler } from "@wagateway/server/lib/view";
+import { IView, ViewRequestHandler } from "@wagateway/server/dist/lib/view";
 import * as Frontend from "@wagateway/clientkit.frontend";
 
 

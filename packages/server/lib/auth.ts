@@ -1,7 +1,6 @@
 import Express from "express";
-import { RPCHandler } from "@orpc/server/node";
 import { implement } from "@orpc/server";
-import { AuthType, AuthInfo, AuthInput, AuthAPIContract } from "@wagateway/api/lib/auth";
+import { AuthType, AuthInfo, AuthInput, AuthAPIContract } from "@wagateway/api/dist/lib/auth";
 
 
 export class AuthError extends Error {}
@@ -111,6 +110,7 @@ export function AuthAPIImpl(config: {
                     throw errors.UNAUTHORIZED({
                         message: error.message,
                     });
+                // TODO
                 throw error;
             }
 

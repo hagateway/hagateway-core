@@ -1,5 +1,5 @@
 {
-    "name": "@wagateway/serverkit-linux",
+    "name": "@wagateway/serverkit-session-sqlite",
     "version": "0.0.0",
     "description": "",
     "files": [
@@ -19,13 +19,8 @@
     "license": "ISC",
     "dependencies": {
         "@wagateway/server": "^0.0.0",
-        "dbus-next": "github:dbusjs/node-dbus-next",
-        "http-proxy-middleware": "^3.0.3",
-        "node-linux-pam": "^0.2.1",
-        "userid": "^1.2.5",
-        "zod": "^3.24.2"
-    },
-    "devDependencies": {
-        "typescript": "^5.8.2"
+        "connect-session-sequelize": "^7.1.7",
+        "sequelize": "^6.37.7",
+        "sqlite3": "^5.1.7"
     }
 }
