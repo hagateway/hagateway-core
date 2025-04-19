@@ -1,6 +1,6 @@
 {
   "name": "@hagateway/clientkit",
-  "version": "0.0.0",
+  "version": "0.0.1-alpha.0",
   "description": "",
   "type": "module",
   "files": [
@@ -18,8 +18,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@hagateway/clientkit.frontend": "^0.0.0",
-    "@hagateway/server": "^0.0.0",
+    "@hagateway/clientkit.frontend": "0.0.1-alpha.0",
+    "@hagateway/server": "0.0.1-alpha.0",
     "connect-slashes": "^1.4.0",
     "express": "^5.1.0",
     "jsdom": "^26.0.0"

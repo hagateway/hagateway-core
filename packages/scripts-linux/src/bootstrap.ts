@@ -20,9 +20,9 @@ export async function bootstrap(config: BootstrapConfig) {
             "version": "0.0.0",
             "private": true,
             "dependencies": {
-                "@hagateway/server": "^0.0.0",
-                "@hagateway/scripts-linux": "^0.0.0",
-                "@hagateway/serverkit-linux": "^0.0.0",
+                "@hagateway/server": "0.0.1-alpha.0",
+                "@hagateway/scripts-linux": "0.0.1-alpha.0",
+                "@hagateway/serverkit-linux": "0.0.1-alpha.0",
             },
             "scripts": {
                 "start": "@hagateway/server serve",

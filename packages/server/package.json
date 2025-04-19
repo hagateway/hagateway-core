@@ -1,6 +1,6 @@
 {
   "name": "@hagateway/server",
-  "version": "0.0.0",
+  "version": "0.0.1-alpha.0",
   "description": "",
   "files": [
     "dist",
@@ -17,7 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "@orpc/server": "^0.54.0",
-    "@hagateway/api": "^0.0.0",
+    "@hagateway/api": "0.0.1-alpha.0",
     "express": "^5.1.0",
     "express-session": "^1.18.1",
     "http-upgrade-request": "github:hagateway/http-upgrade-request",

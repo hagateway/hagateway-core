@@ -33,6 +33,6 @@ jobs:
 
       - name: Publish packages to GitHub Packages
         run: |
-          npm publish --workspaces --tag dev
+          npm publish --workspaces --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,6 +1,6 @@
 {
     "name": "@hagateway/serverkit-session-sqlite",
-    "version": "0.0.0",
+    "version": "0.0.1-alpha.0",
     "description": "",
     "files": [
         "dist/",
@@ -18,7 +18,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@hagateway/server": "^0.0.0",
+        "@hagateway/server": "0.0.1-alpha.0",
         "connect-session-sequelize": "^7.1.7",
         "sequelize": "^6.37.7",
         "sqlite3": "^5.1.7"
