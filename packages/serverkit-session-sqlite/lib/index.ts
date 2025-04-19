@@ -2,7 +2,7 @@ import ExpressSession from "express-session";
 import ConnectSequelize from "connect-session-sequelize";
 import { Sequelize } from "sequelize";
 const SequelizeStore = ConnectSequelize(ExpressSession.Store);
-import { SessionManager } from "@wagateway/server/dist/lib/session";
+import { SessionManager } from "@hagateway/server/dist/lib/session";
 
 
 export class SQLiteSessionManager extends SessionManager {

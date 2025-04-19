@@ -1,5 +1,5 @@
 {
-  "name": "@wagateway/server",
+  "name": "@hagateway/server",
   "version": "0.0.0",
   "description": "",
   "files": [
@@ -17,15 +17,16 @@
   "license": "ISC",
   "dependencies": {
     "@orpc/server": "^0.54.0",
-    "@wagateway/api": "^0.0.0",
+    "@hagateway/api": "^0.0.0",
     "express": "^5.1.0",
     "express-session": "^1.18.1",
-    "http-upgrade-request": "^0.0.0",
+    "http-upgrade-request": "github:hagateway/http-upgrade-request",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/express-session": "^1.18.1",
+    "@types/node": "^22.14.1",
     "@types/yargs": "^17.0.33",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"

@@ -4,8 +4,8 @@ import * as PIcons from "@patternfly/react-icons";
 import "@patternfly/react-core/dist/styles/base.css";
 import { ContractRouterClient } from "@orpc/contract";
 import { safe } from "@orpc/client";
-import { AppAPIContract } from "@wagateway/api/dist/lib/app";
-import { AuthType, AuthInfo } from "@wagateway/api/dist/lib/auth";
+import { AppAPIContract } from "@hagateway/api/dist/lib/app";
+import { AuthType, AuthInfo } from "@hagateway/api/dist/lib/auth";
 
 import { Select, SelectList, SelectOption } from "./ui/select";
 

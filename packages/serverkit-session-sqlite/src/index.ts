@@ -1,6 +1,6 @@
 import Path from "node:path";
 
-import { IKit } from "@wagateway/server/dist/src";
+import { IKit } from "@hagateway/server/dist/src";
 import { SQLiteSessionManager } from "../lib";
 
 

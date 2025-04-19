@@ -82,7 +82,7 @@ class SystemdDBus {
 
 
 
-import { AppletSpec, IAppletManager, IAppletSpawner, AppletProxySpec, AppletProcessSpec } from "@wagateway/server/dist/lib/applet";
+import { AppletSpec, IAppletManager, IAppletSpawner, AppletProxySpec, AppletProcessSpec } from "@hagateway/server/dist/lib/applet";
 import {
     Options as ProxyOptions,
     createProxyMiddleware as ProxyMiddleware,

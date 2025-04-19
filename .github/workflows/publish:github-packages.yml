@@ -23,16 +23,13 @@ jobs:
           cache: 'npm'
           registry-url: 'https://npm.pkg.github.com'
           # Defaults to the user or organization that owns the workflow file
-          scope: '@wagateway'
+          # scope: '@wagateway'
 
       # TODO !!!!!
       - name: Install dependencies
         run: |
           sudo apt-get install --yes libpam0g-dev
           npm install
-      
-      # TODO
-      # - run: npm ci
 
       - name: Publish packages to GitHub Packages
         run: |

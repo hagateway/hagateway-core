@@ -1,5 +1,5 @@
 {
-    "name": "@wagateway/serverkit-linux",
+    "name": "@hagateway/serverkit-linux",
     "version": "0.0.0",
     "description": "",
     "files": [
@@ -18,12 +18,12 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@wagateway/server": "^0.0.0",
-        "dbus-next": "github:dbusjs/node-dbus-next",
+        "@hagateway/server": "^0.0.0",
         "http-proxy-middleware": "^3.0.3",
+        "zod": "^3.24.2",
+        "dbus-next": "github:dbusjs/node-dbus-next",
         "node-linux-pam": "^0.2.1",
-        "userid": "^1.2.5",
-        "zod": "^3.24.2"
+        "userid": "^1.2.5"
     },
     "devDependencies": {
         "typescript": "^5.8.2"

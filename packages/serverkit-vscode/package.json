@@ -1,5 +1,5 @@
 {
-    "name": "@wagateway/serverkit-vscode",
+    "name": "@hagateway/serverkit-vscode",
     "version": "0.0.0",
     "description": "",
     "files": [
@@ -19,6 +19,6 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@wagateway/server": "^0.0.0"
+        "@hagateway/server": "^0.0.0"
     }
 }

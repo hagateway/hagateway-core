@@ -1,5 +1,5 @@
 {
-    "name": "@wagateway/serverkit-session-sqlite",
+    "name": "@hagateway/serverkit-session-sqlite",
     "version": "0.0.0",
     "description": "",
     "files": [
@@ -18,9 +18,12 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@wagateway/server": "^0.0.0",
+        "@hagateway/server": "^0.0.0",
         "connect-session-sequelize": "^7.1.7",
         "sequelize": "^6.37.7",
         "sqlite3": "^5.1.7"
+    },
+    "devDependencies": {
+        "@types/node": "^22.14.1"
     }
 }

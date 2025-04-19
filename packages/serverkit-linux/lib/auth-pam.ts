@@ -1,7 +1,7 @@
 import LinuxPAM from "node-linux-pam";
 import UserID from "userid";
 
-import { IAuthProvider, AuthError } from "@wagateway/server/dist/lib/auth";
+import { IAuthProvider, AuthError } from "@hagateway/server/dist/lib/auth";
 
 
 export interface PAMPasswdAuthProviderConfig {

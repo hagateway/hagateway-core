@@ -11,7 +11,7 @@ import { LoginScreen } from "../lib/components/login";
 // };
 
 // TODO
-import { AppAPIContract } from "@wagateway/api/dist/lib/app";
+import { AppAPIContract } from "@hagateway/api/dist/lib/app";
 import { ContractRouterClient } from "@orpc/contract";
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";

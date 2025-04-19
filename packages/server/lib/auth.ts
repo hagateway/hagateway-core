@@ -1,6 +1,6 @@
 import Express from "express";
 import { implement } from "@orpc/server";
-import { AuthType, AuthInfo, AuthInput, AuthAPIContract } from "@wagateway/api/dist/lib/auth";
+import { AuthType, AuthInfo, AuthInput, AuthAPIContract } from "@hagateway/api/dist/lib/auth";
 
 
 export class AuthError extends Error {}

@@ -1,4 +1,4 @@
-import { IAppletSpawner } from "@wagateway/server/dist/lib/applet";
+import { IAppletSpawner } from "@hagateway/server/dist/lib/applet";
 
 
 export function VSCodeAppletSpawner(): IAppletSpawner {

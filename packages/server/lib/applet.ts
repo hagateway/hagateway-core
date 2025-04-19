@@ -73,7 +73,7 @@ export interface IAppletManager {
 import { ISessionManager } from "./session";
 
 import { implement } from "@orpc/server";
-import { AppletManagerAPIContract } from "@wagateway/api/dist/lib/applet";
+import { AppletManagerAPIContract } from "@hagateway/api/dist/lib/applet";
 
 
 export function AppletManagerAPIImpl(

@@ -16,16 +16,16 @@ export async function bootstrap(config: BootstrapConfig) {
     await Fs.writeFile(
         Path.join(config.prefix, "package.json"),
         JSON.stringify({
-            "name": "@wagateway/user-deployment",
+            "name": "@hagateway/user-deployment",
             "version": "0.0.0",
             "private": true,
             "dependencies": {
-                "@wagateway/server": "^0.0.0",
-                "@wagateway/scripts-linux": "^0.0.0",
-                "@wagateway/serverkit-linux": "^0.0.0",
+                "@hagateway/server": "^0.0.0",
+                "@hagateway/scripts-linux": "^0.0.0",
+                "@hagateway/serverkit-linux": "^0.0.0",
             },
             "scripts": {
-                "start": "@wagateway/server serve",
+                "start": "@hagateway/server serve",
             },
         }, null, 2),
         { encoding: "utf8" },
@@ -45,13 +45,13 @@ import Yargs from "yargs";
 
 const command: Yargs.CommandModule<{}, BootstrapConfig> = {
     command: ["bootstrap"],
-    describe: "Bootstrap a wagateway deployment directory",
+    describe: "Bootstrap a hagateway deployment directory",
     aliases: ["install"],
     builder(yargs) {
         return yargs.option("prefix", {
             type: "string",
             describe: "Installation directory",
-            default: "/opt/wagateway",
+            default: "/opt/hagateway",
         });
     },
     async handler(argv) {

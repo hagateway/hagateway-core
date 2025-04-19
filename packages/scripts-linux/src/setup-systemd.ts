@@ -12,21 +12,21 @@ export interface SetupSystemdConfig {
 export async function setupSystemd(config: SetupSystemdConfig) {
     const {
         // TODO get from current dir!!!!!
-        prefix, //= "/opt/wagateway",
+        prefix, //= "/opt/hagateway",
         systemdUnitDirectory = "/etc/systemd/system",
     } = config;
 
     await Fs.writeFile(
-        Path.join(systemdUnitDirectory, "wagateway@.service"),
+        Path.join(systemdUnitDirectory, "hagateway@.service"),
         Ini.encode({
             Unit: {
-                Description: "WAGateway Instance - %i",
+                Description: "hagateway Instance - %i",
                 After: "network.target",
             },
             Service: {
                 Type: "simple",
                 WorkingDirectory: Path.resolve(prefix),
-                RuntimeDirectory: "wagateway/%i",
+                RuntimeDirectory: "hagateway/%i",
                 ExecStart: `npm start -- '${JSON.stringify({
                     // TODO
                     include: "./instances/%i",
@@ -51,18 +51,18 @@ import Yargs from "yargs";
 
 const command: Yargs.CommandModule<{}, SetupSystemdConfig> = {
     command: "systemd",
-    describe: "Generate wagateway@.service unit for systemd",
+    describe: "Generate hagateway@.service unit for systemd",
     builder(yargs) {
         return yargs
             .option("prefix", {
                 type: "string",
                 describe: "Installation prefix passed during bootstrapping",
-                default: "/opt/wagateway",
+                default: "/opt/hagateway",
             })
             // TODO !!!!!!!!
             .option("systemdUnitDirectory", {
                 type: "string",
-                describe: "Where to place wagateway@.service",
+                describe: "Where to place hagateway@.service",
                 default: "/etc/systemd/system",
             })
             .check(async (argv) => {
@@ -70,7 +70,7 @@ const command: Yargs.CommandModule<{}, SetupSystemdConfig> = {
                     await Fs.readFile(Path.join(argv.prefix, "package.json"), "utf8")
                 );
                 // TODO better message!!!!!!!
-                if (packageConfig.name !== "@wagateway/user-deployment") {
+                if (packageConfig.name !== "@hagateway/user-deployment") {
                     throw new Error(
                         `Invalid "package.json" in ${argv.prefix}: ${packageConfig.name}`
                     );

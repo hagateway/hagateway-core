@@ -1,7 +1,7 @@
 import Crypto from "node:crypto";
 
 import Express from "express";
-import ExpressSession, { Store } from "express-session";
+import ExpressSession from "express-session";
 
 
 export interface SessionData {
@@ -106,7 +106,7 @@ export class SessionManager implements ISessionManager {
 
 
 import { implement } from "@orpc/server";
-import { SessionManagerAPIContract } from "@wagateway/api/dist/lib/session";
+import { SessionManagerAPIContract } from "@hagateway/api/dist/lib/session";
 
 
 export function SessionManagerAPIImpl(config: {

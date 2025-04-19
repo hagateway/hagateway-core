@@ -17,7 +17,7 @@ import { IView, ViewLocals } from "./view";
 
 import { implement } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/node";
-import { AppAPIContract } from "@wagateway/api/dist/lib/app";
+import { AppAPIContract } from "@hagateway/api/dist/lib/app";
 
 import { AppletManagerAPIImpl } from "./applet";
 import { AuthAPIImpl } from "./auth";
