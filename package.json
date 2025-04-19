@@ -4,5 +4,7 @@
     "workspaces": [
         "packages/*"
     ],
-    "version": "0.0.1-alpha.0"
+    "scripts": {
+        "version:alpha": "npm version prerelease --preid=alpha --workspaces"
+    }
 }

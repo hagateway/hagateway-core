@@ -1,9 +1,9 @@
 name: Publish to GitHub Packages
 
 on:
-  push:
-    branches:
-      - main  # or your release branch
+  # push:
+  #   branches:
+  #     - main  # or your release branch
   workflow_dispatch:  # allows manual trigger
 
 jobs:
