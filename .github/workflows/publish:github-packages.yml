@@ -29,8 +29,9 @@ jobs:
           registry-url: 'https://npm.pkg.github.com'
           cache: 'pnpm'
 
+      # TODO !!!!!
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --no-lockfile
 
       - name: Publish packages to GitHub Packages
         run: |
