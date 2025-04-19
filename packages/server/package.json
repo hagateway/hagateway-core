@@ -7,11 +7,14 @@
     "lib",
     "src"
   ],
-  "bin": "./dist/src/index.js",
+  "bin": {
+    "hagateway.server": "./dist/src/index.js"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node dist/src",
-    "test": "echo TODO impl && exit 1"
+    "test": "echo TODO impl && exit 1",
+    "prepare": "npm run build"
   },
   "author": "",
   "license": "ISC",

@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import Process from "node:process";
 import Path from "node:path";
 

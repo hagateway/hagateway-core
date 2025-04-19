@@ -1,6 +1,12 @@
 # 
 
 ## TODOs
+
+```
+npm version prerelease --preid=alpha
+```
+
+
 - require.resolve('./TODO.ipynb', {paths: ['/home/sysadmin/lab/wagateway/.todo~']})
 - wait until unix socket available
 - import relative to config dir

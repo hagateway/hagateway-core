@@ -13,6 +13,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "prepare": "npm run build",
     "test": "echo TODO impl && exit 1"
   },
   "author": "",
