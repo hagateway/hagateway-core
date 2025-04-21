@@ -11,8 +11,7 @@ export interface SetupSystemdConfig {
 
 export async function setupSystemd(config: SetupSystemdConfig) {
     const {
-        // TODO get from current dir!!!!!
-        prefix, //= "/opt/hagateway",
+        prefix,
         systemdUnitDirectory = "/etc/systemd/system",
     } = config;
 
@@ -64,17 +63,6 @@ export const setupSystemdCommand = {
                 type: "string",
                 describe: "Where to place hagateway@.service",
                 default: "/etc/systemd/system",
-            })
-            .check(async (argv) => {
-                const packageConfig = JSON.parse(
-                    await Fs.readFile(Path.join(argv.prefix, "package.json"), "utf8")
-                );
-                // TODO better message!!!!!!!
-                if (packageConfig.name !== "@hagateway/user-deployment") {
-                    throw new Error(
-                        `Invalid "package.json" in ${argv.prefix}: ${packageConfig.name}`
-                    );
-                }
             });
     },
     async handler(argv) {
