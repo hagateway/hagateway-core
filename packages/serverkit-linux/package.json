@@ -1,6 +1,6 @@
 {
     "name": "@hagateway/serverkit-linux",
-    "version": "0.0.1-alpha.2",
+    "version": "0.0.1-alpha.3",
     "description": "",
     "files": [
         "dist/",
@@ -20,7 +20,7 @@
     "license": "ISC",
     "dependencies": {
         "@hagateway/server": "^0.0.1-alpha.2",
-        "dbus-next": "git://github.com/dbusjs/node-dbus-next.git#v0.10.2",
+        "dbus-next": "github:dbusjs/node-dbus-next#04945fa",
         "http-proxy-middleware": "^3.0.5",
         "node-linux-pam": "^0.2.1",
         "userid": "^1.2.5",
