@@ -1,5 +1,11 @@
 # @hagateway/scripts-linux
 
+## 0.0.1-alpha.9
+
+### Patch Changes
+
+- Internal bug fix
+
 ## 0.0.1-alpha.8
 
 ### Patch Changes

@@ -7,24 +7,27 @@ import * as Ini from "ini";
 export interface SetupSystemdConfig {
     prefix: string;
     systemdUnitDirectory?: string;
+    force?: boolean;
 }
 
 export async function setupSystemd(config: SetupSystemdConfig) {
     const {
         prefix,
         systemdUnitDirectory = "/etc/systemd/system",
+        force = false,
     } = config;
 
     try {
         const f = await Fs.open(
             Path.join(systemdUnitDirectory, "hagateway@.service"), 
-            "wx", // 'w' = write, 'x' = exclusive (fail if exists)
+            force ? "w" : "wx", // 'w' = write, 'x' = exclusive (fail if exists)
         );
         await f.writeFile(
             Ini.encode({
                 Unit: {
                     Description: "hagateway Instance - %i",
-                    After: "network.target",
+                    Wants: "network-online.target",
+                    After: "network.target network-online.target",
                 },
                 Service: {
                     Type: "simple",
@@ -32,8 +35,8 @@ export async function setupSystemd(config: SetupSystemdConfig) {
                     RuntimeDirectory: "hagateway/%i",
                     ExecStart: `npx @hagateway/server serve '${JSON.stringify({
                         // TODO
-                        include: "./instances/%i",
                         context: { runtimeDirectory: "${RUNTIME_DIRECTORY}" },
+                        include: "./instances/%i",
                     })}'`,
                     // Restart: "always",
                     User: "root",
@@ -72,6 +75,11 @@ export const setupSystemdCommand = {
                 type: "string",
                 describe: "Where to place hagateway@.service",
                 default: "/etc/systemd/system",
+            })
+            .option("force", {
+                type: "boolean",
+                describe: "Overwrite existing file(s)",
+                default: false,
             });
     },
     async handler(argv) {
