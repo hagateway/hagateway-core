@@ -1,3 +1,4 @@
+import * as Path from "node:path";
 import * as Fs from "node:fs/promises";
 import * as ChildProcess from "node:child_process";
 import * as Util from "node:util";
@@ -11,11 +12,26 @@ export interface BootstrapConfig {
 export async function bootstrap(config: BootstrapConfig) {
     await Fs.mkdir(config.prefix, { mode: 0o700, recursive: true });
 
+    try {
+        const f = await Fs.open(
+            Path.join(config.prefix, "package.json"), 
+            "wx", // 'w' = write, 'x' = exclusive (fail if exists)
+        );
+        await f.writeFile(
+            JSON.stringify({}, null, 2), 
+            { encoding: "utf8" },
+        );
+        await f.close();
+    } catch (error: any) {
+        if ((error as NodeJS.ErrnoException).code !== "EEXIST")
+            throw new Error("Failed to create package.json", { cause: error });
+    }
+
     for (const [executable, args] of [
         ["npm", ["init", "--prefix", config.prefix]],
         ["npm", [
-            "install", "--prefix", config.prefix, 
-            "--save", 
+            "install", "--prefix", config.prefix,
+            "--save",
             "@hagateway/server",
             "@hagateway/serverkit-linux",
         ]],
