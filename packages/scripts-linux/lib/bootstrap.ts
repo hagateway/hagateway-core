@@ -28,7 +28,6 @@ export async function bootstrap(config: BootstrapConfig) {
     }
 
     for (const [executable, args] of [
-        ["npm", ["init", "--prefix", config.prefix]],
         ["npm", [
             "install", "--prefix", config.prefix,
             "--save",
