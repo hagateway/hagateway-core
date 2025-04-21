@@ -8,7 +8,7 @@
     "src"
   ],
   "bin": {
-    "hagateway.server": "./dist/src/index.js"
+    "hagateway.server": "dist/src/index.js"
   },
   "scripts": {
     "build": "tsc",

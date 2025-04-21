@@ -518,7 +518,7 @@ export function Main() {
     return { run };
 }
 
-export function CliMain() {
+export function CLIMain() {
     const yargs = Yargs();
 
     yargs.strict();
@@ -550,16 +550,16 @@ export function CliMain() {
         },
     );
 
-    const run = async (
-        argv: string[] = YargsHelper.hideBin(Process.argv),
-    ) => {
-        // TODO ...
-        yargs.parse(argv);
+    return { 
+        run: async (
+            argv: string[] = YargsHelper.hideBin(Process.argv),
+        ) => {
+            // TODO ...
+            await yargs.parse(argv);
+        }
     };
-
-    return { run };
 }
 
 if (require.main === module) {
-    CliMain().run();
+    CLIMain().run();
 }

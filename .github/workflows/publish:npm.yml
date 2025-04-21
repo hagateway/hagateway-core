@@ -1,6 +1,9 @@
 name: Publish to NPM
 
 on:
+  push:
+    branches:
+      - main  # or your release branch
   workflow_dispatch:  # allows manual trigger
 
 jobs:

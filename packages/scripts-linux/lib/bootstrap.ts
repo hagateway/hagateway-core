@@ -42,8 +42,8 @@ export async function bootstrap(config: BootstrapConfig) {
 
 import Yargs from "yargs";
 
-const command: Yargs.CommandModule<{}, BootstrapConfig> = {
-    command: ["bootstrap"],
+export const bootstrapCommand = {
+    command: "bootstrap",
     describe: "Bootstrap a hagateway deployment directory",
     aliases: ["install"],
     builder(yargs) {
@@ -56,6 +56,4 @@ const command: Yargs.CommandModule<{}, BootstrapConfig> = {
     async handler(argv) {
         await bootstrap({ prefix: argv.prefix });
     },
-};
-
-export default command;
+} satisfies Yargs.CommandModule<{}, BootstrapConfig>;

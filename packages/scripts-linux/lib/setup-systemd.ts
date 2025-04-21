@@ -49,8 +49,8 @@ export async function setupSystemd(config: SetupSystemdConfig) {
 import Yargs from "yargs";
 
 
-const command: Yargs.CommandModule<{}, SetupSystemdConfig> = {
-    command: "systemd",
+export const setupSystemdCommand = {
+    command: "setup-systemd",
     describe: "Generate hagateway@.service unit for systemd",
     builder(yargs) {
         return yargs
@@ -80,7 +80,4 @@ const command: Yargs.CommandModule<{}, SetupSystemdConfig> = {
     async handler(argv) {
         await setupSystemd(argv);
     },
-};
-
-
-export default command;
+} satisfies Yargs.CommandModule<{}, SetupSystemdConfig>;

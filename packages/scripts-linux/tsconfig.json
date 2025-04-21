@@ -14,5 +14,5 @@
       "sourceMap": true,
       "declarationMap": true,
     },
-    "include": ["index.ts", "src"]
+    "include": ["index.ts", "lib", "src"]
 }

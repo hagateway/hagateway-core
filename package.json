@@ -14,7 +14,9 @@
         "@changesets/cli": "^2.29.2"
     },
     "scripts": {
+        "log-changes": "npx @changesets/cli",
+        "bump-version": "npx @changesets/cli version",
         "build": "npm install && npm run build --workspaces",
-        "release": "npm install && npm publish --workspaces --access public"
+        "release": "npm install && npx @changesets/cli publish"
     }
 }
