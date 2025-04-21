@@ -27,7 +27,7 @@ export async function setupSystemd(config: SetupSystemdConfig) {
                 Type: "simple",
                 WorkingDirectory: Path.resolve(prefix),
                 RuntimeDirectory: "hagateway/%i",
-                ExecStart: `npm start -- '${JSON.stringify({
+                ExecStart: `npx @hagateway/server serve '${JSON.stringify({
                     // TODO
                     include: "./instances/%i",
                     context: { runtimeDirectory: "${RUNTIME_DIRECTORY}" },

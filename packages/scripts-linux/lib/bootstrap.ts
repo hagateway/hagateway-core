@@ -1,4 +1,3 @@
-import * as Path from "node:path";
 import * as Fs from "node:fs/promises";
 import * as ChildProcess from "node:child_process";
 import * as Util from "node:util";
@@ -12,31 +11,20 @@ export interface BootstrapConfig {
 export async function bootstrap(config: BootstrapConfig) {
     await Fs.mkdir(config.prefix, { mode: 0o700, recursive: true });
 
-    // TODO check for existance
-    await Fs.writeFile(
-        Path.join(config.prefix, "package.json"),
-        JSON.stringify({
-            "name": "@hagateway/user-deployment",
-            "private": true,
-            "dependencies": {
-                "@hagateway/server": "*",
-                "@hagateway/scripts-linux": "*",
-                "@hagateway/serverkit-linux": "*",
-            },
-            "scripts": {
-                "start": "npx @hagateway/server serve",
-            },
-        }, null, 2),
-        { encoding: "utf8" },
-    );
-
-    // TODO install
-    await spawnAsync(
-        "npm",
-        ["install", "--prefix", config.prefix],
-        { stdio: "inherit" },
-    );
-
+    for (const [executable, args] of [
+        ["npm", ["init", "--prefix", config.prefix]],
+        ["npm", [
+            "install", "--prefix", config.prefix, 
+            "--save", 
+            "@hagateway/server",
+            "@hagateway/serverkit-linux",
+        ]],
+    ] satisfies [string, string[]][]) {
+        await spawnAsync(
+            executable, args,
+            { stdio: "inherit" },
+        );
+    }
 }
 
 
