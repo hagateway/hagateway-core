@@ -15,33 +15,42 @@ export async function setupSystemd(config: SetupSystemdConfig) {
         systemdUnitDirectory = "/etc/systemd/system",
     } = config;
 
-    await Fs.writeFile(
-        Path.join(systemdUnitDirectory, "hagateway@.service"),
-        Ini.encode({
-            Unit: {
-                Description: "hagateway Instance - %i",
-                After: "network.target",
-            },
-            Service: {
-                Type: "simple",
-                WorkingDirectory: Path.resolve(prefix),
-                RuntimeDirectory: "hagateway/%i",
-                ExecStart: `npx @hagateway/server serve '${JSON.stringify({
+    try {
+        const f = await Fs.open(
+            Path.join(systemdUnitDirectory, "hagateway@.service"), 
+            "wx", // 'w' = write, 'x' = exclusive (fail if exists)
+        );
+        await f.writeFile(
+            Ini.encode({
+                Unit: {
+                    Description: "hagateway Instance - %i",
+                    After: "network.target",
+                },
+                Service: {
+                    Type: "simple",
+                    WorkingDirectory: Path.resolve(prefix),
+                    RuntimeDirectory: "hagateway/%i",
+                    ExecStart: `npx @hagateway/server serve '${JSON.stringify({
+                        // TODO
+                        include: "./instances/%i",
+                        context: { runtimeDirectory: "${RUNTIME_DIRECTORY}" },
+                    })}'`,
+                    // Restart: "always",
+                    User: "root",
                     // TODO
-                    include: "./instances/%i",
-                    context: { runtimeDirectory: "${RUNTIME_DIRECTORY}" },
-                })}'`,
-                Restart: "always",
-                User: "root",
-                // TODO
-                // Environment: "NODE_ENV=production",
-            },
-            Install: {
-                WantedBy: "multi-user.target",
-            },
-        }, { section: "" }),
-        { encoding: "utf8" },
-    );
+                    // Environment: "NODE_ENV=production",
+                },
+                Install: {
+                    WantedBy: "multi-user.target",
+                },
+            }, { section: "" }),
+            { encoding: "utf8" },
+        );
+        await f.close();
+    } catch (error: any) {
+        if ((error as NodeJS.ErrnoException).code === "EEXIST")
+            throw new Error("The service has already been set up", { cause: error });
+    }
 }
 
 

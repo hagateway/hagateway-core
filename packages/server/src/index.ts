@@ -149,31 +149,44 @@ export interface RunConfigConstructor {
 export function Main() {
     const kitRegistry = KitRegistry();
 
+    // TODO
+    const useComponent = <ComponentT extends object>(
+        componentRef: string | ComponentT,
+        context?: ConfigureContext,
+    ) => {
+        var component: ComponentT;
+        var componentPath: string;
+
+        const baseDirectory = context?.baseDirectory ?? ".";
+
+        switch (typeof componentRef) {
+            case "string":
+                // TODO !!!
+                componentPath = require.resolve(
+                    componentRef, 
+                    { paths: [baseDirectory] }
+                );
+                const module = require(componentPath);
+                component = module.default?.default ?? module.default ?? module;
+                break;
+            case "object":
+                componentPath = baseDirectory;
+                component = componentRef;
+                break;
+            default:
+                throw new Error(`Invalid component reference: ${componentRef}`);
+        }
+
+        return { component, componentPath };
+    };
+
     const useKit = async (
         kitRef: string | IKit,
         // TODO
         context?: ConfigureContext,
     ) => {
-        var kit: IKit;
-        switch (typeof kitRef) {
-            case "string":
-                // TODO !!!
-                const module = require(
-                    require.resolve(
-                        kitRef, 
-                        { paths: [context?.baseDirectory ?? "."] }
-                    )
-                );
-                // const module = await import(kitRef);
-                kit = module.default?.default ?? module.default ?? module;
-                break;
-            case "object":
-                kit = kitRef;
-                break;
-            default:
-                throw new Error(`Invalid kit reference: ${kitRef}`);
-        }
-        kit(kitRegistry);
+        const { component } = useComponent(kitRef, context);
+        return component(kitRegistry);
     };
 
     var runContext: RunContext | null = null;
@@ -250,21 +263,15 @@ export function Main() {
                         }
                     }
 
-                    for (var include of includes) {
-                        var module;
+                    for (var include of includes) {                        
                         try {
-                            // TODO
-                            module = require(
-                                require.resolve(
-                                    include,
-                                    { paths: [context?.baseDirectory ?? "."] }
-                                )                                
-                            );
-                            // TODO
-                            // module = await import(include);
+                            let { component, componentPath } = useComponent(include);
+                            await configure(component, {
+                                baseDirectory: Path.dirname(componentPath),
+                            });
                         } catch (e) {
                             throw {
-                                message: `An error occurred while importing `
+                                message: `An error occurred while using `
                                     + `the javascript/json config: ${include}`,
                                 details: {
                                     location: [key, config.include],
@@ -274,11 +281,6 @@ export function Main() {
                             } satisfies RunConfig.ErrorInfo;
                         }
                         // TODO parse with zod!!!!
-                        
-                        await configure(module.default, {
-                            // TODO !!!!
-                            baseDirectory: Path.dirname(require.resolve(include)),
-                        });
                     }
 
                     break;
