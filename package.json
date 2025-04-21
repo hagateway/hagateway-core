@@ -1,6 +1,5 @@
 {
     "name": "hagateway-core",
-    "private": true,
     "workspaces": [
         "packages/api",
         "packages/server",
@@ -17,6 +16,6 @@
         "log-changes": "npx @changesets/cli",
         "bump-version": "npx @changesets/cli version",
         "build": "npm install && npm run build --workspaces",
-        "release": "npm install && npx @changesets/cli publish --access public"
+        "release": "npm install && npx @changesets/cli publish"
     }
 }
