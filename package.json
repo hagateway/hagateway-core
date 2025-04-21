@@ -17,6 +17,6 @@
         "log-changes": "npx @changesets/cli",
         "bump-version": "npx @changesets/cli version",
         "build": "npm install && npm run build --workspaces",
-        "release": "npm install && npx @changesets/cli publish"
+        "release": "npm install && npx @changesets/cli publish --access public"
     }
 }
