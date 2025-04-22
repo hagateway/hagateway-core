@@ -45,6 +45,7 @@ export const Screen: React.FunctionComponent<{
         apiClient={props.apiClient}
         onAuthSuccess={async () => {
             await props.onLoginSuccess?.();
+            setShouldLogin(false);
         }}
     />;
 };
