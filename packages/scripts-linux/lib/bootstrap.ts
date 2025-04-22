@@ -1,5 +1,5 @@
 import * as Path from "node:path";
-import * as Fs from "node:fs/promises";
+import * as Fs from "node:fs";
 import * as ChildProcess from "node:child_process";
 import * as Util from "node:util";
 const spawnAsync = Util.promisify(ChildProcess.spawn);
@@ -10,10 +10,10 @@ export interface BootstrapConfig {
 }
 
 export async function bootstrap(config: BootstrapConfig) {
-    await Fs.mkdir(config.prefix, { mode: 0o700, recursive: true });
+    await Fs.promises.mkdir(config.prefix, { mode: 0o700, recursive: true });
 
     try {
-        const f = await Fs.open(
+        const f = await Fs.promises.open(
             Path.join(config.prefix, "package.json"), 
             "wx", // 'w' = write, 'x' = exclusive (fail if exists)
         );
@@ -33,6 +33,7 @@ export async function bootstrap(config: BootstrapConfig) {
             "--save",
             "@hagateway/server",
             "@hagateway/serverkit-linux",
+            "@hagateway/clientkit",
         ]],
     ] satisfies [string, string[]][]) {
         await spawnAsync(

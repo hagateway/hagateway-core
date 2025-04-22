@@ -4,7 +4,7 @@ import Express from "express";
 import ExpressSession from "express-session";
 
 
-export interface SessionData {
+export interface SessionDataInternal {
     user: string;
     appletRef?: string;
 }
@@ -18,17 +18,17 @@ export interface ISessionManager {
         invalidate(secret: string | Buffer): Promise<void>;
     };
     serve(req: Express.Request): Promise<void>;
-    create(req: Express.Request, data: SessionData): Promise<void>;
+    create(req: Express.Request, data: SessionDataInternal): Promise<void>;
     destroy(req: Express.Request): Promise<void>;
     has(req: Express.Request): Promise<boolean>;
-    query(req: Express.Request): Promise<SessionData | null>;
-    update(req: Express.Request, data: Partial<SessionData>): Promise<void>;
+    query(req: Express.Request): Promise<SessionDataInternal | null>;
+    update(req: Express.Request, data: Partial<SessionDataInternal>): Promise<void>;
 }
 
 
 export namespace SessionManager {
     export interface Session extends ExpressSession.Session {
-        data?: SessionData;
+        data?: SessionDataInternal;
     }
 }
 
@@ -60,7 +60,7 @@ export class SessionManager implements ISessionManager {
         return this.sessionHandler(req, req.res, req.next);
     }
 
-    async create(req: Express.Request, data: SessionData) {
+    async create(req: Express.Request, data: SessionDataInternal) {
         const session: SessionManager.Session = req.session;
         if (session == null) 
             throw new Error("TODO");
@@ -83,7 +83,8 @@ export class SessionManager implements ISessionManager {
     }
 
     async has(req: Express.Request) {
-        return req.session != null;
+        const session: SessionManager.Session = req.session;
+        return session?.data != null;
     }
 
     async query(req: Express.Request) {
@@ -91,7 +92,7 @@ export class SessionManager implements ISessionManager {
         return session?.data ?? null;
     }
 
-    async update(req: Express.Request, data: Partial<SessionData>) {
+    async update(req: Express.Request, data: Partial<SessionDataInternal>) {
         const session: SessionManager.Session = req.session;
         if (session == null) 
             throw new Error("TODO");
@@ -122,6 +123,17 @@ export function SessionManagerAPIImpl(config: {
             };
         }),
         instance: {
+            has: os.instance.has.handler(async ({ context }) => {
+                return config.sessionManager.has(context.req);
+            }),
+            query: os.instance.query.handler(async ({ context }) => {
+                const dataInternal = await config.sessionManager.query(context.req);
+                if (dataInternal == null)
+                    return null;
+                return {
+                    user: dataInternal.user,
+                };
+            }),
             destroy: os.instance.destroy.handler(async ({ context }) => {
                 await config.sessionManager.destroy(context.req);
             }),

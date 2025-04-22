@@ -1,5 +1,5 @@
 import * as Path from "node:path";
-import * as Fs from "node:fs/promises";
+import * as Fs from "node:fs";
 
 import * as Ini from "ini";
 
@@ -18,7 +18,7 @@ export async function setupSystemd(config: SetupSystemdConfig) {
     } = config;
 
     try {
-        const f = await Fs.open(
+        const f = await Fs.promises.open(
             Path.join(systemdUnitDirectory, "hagateway@.service"), 
             force ? "w" : "wx", // 'w' = write, 'x' = exclusive (fail if exists)
         );
@@ -31,17 +31,16 @@ export async function setupSystemd(config: SetupSystemdConfig) {
                 },
                 Service: {
                     Type: "simple",
+                    User: "root",
                     WorkingDirectory: Path.resolve(prefix),
                     RuntimeDirectory: "hagateway/%i",
+                    Environment: "NODE_ENV=production",
                     ExecStart: `npx @hagateway/server serve '${JSON.stringify({
                         // TODO
                         context: { runtimeDirectory: "${RUNTIME_DIRECTORY}" },
                         include: "./instances/%i",
                     })}'`,
-                    // Restart: "always",
-                    User: "root",
-                    // TODO
-                    // Environment: "NODE_ENV=production",
+                    Restart: "on-failure",
                 },
                 Install: {
                     WantedBy: "multi-user.target",

@@ -1,5 +1,5 @@
 import Path from "node:path";
-import Fs from "node:fs/promises";
+import Fs from "node:fs";
 import Express from "express";
 import ExpressSlashes from "connect-slashes";
 import { JSDOM } from "jsdom";
@@ -15,7 +15,7 @@ export function View(): IView {
         ExpressSlashes(),
         (async (req, res) => {
             const f = Path.join(Frontend.path, "index.html");
-            const dom = new JSDOM(await Fs.readFile(f, "utf8"));
+            const dom = new JSDOM(await Fs.promises.readFile(f, "utf8"));
 
             const configElement = dom.window.document.querySelector("script#config");
             if (configElement != null) {

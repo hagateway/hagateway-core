@@ -1,22 +1,54 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 
-import { Config } from "../index";
-// TODO
-import { LoginScreen } from "../lib/components/login";
-
-
-// TODO
-// export const App: React.FunctionComponent<Config> = (config) => {
-// };
-
 // TODO
 import { AppAPIContract } from "@hagateway/api/dist/lib/app";
 import { ContractRouterClient } from "@orpc/contract";
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 
-function useApp(
+import { Config } from "../index";
+// TODO
+import { LoginScreen } from "../lib/components/login";
+import { DashboardScreen } from "../lib/components/dashboard";
+
+
+export const Screen: React.FunctionComponent<{
+    apiClient: ContractRouterClient<typeof AppAPIContract>;
+    onLoginSuccess?: () => Promise<void>;
+    onLogoutSuccess?: () => Promise<void>;
+}> = (props) => {
+    const [shouldLogin, setShouldLogin] = React.useState<boolean>();
+
+    React.useEffect(() => {
+        // TODO error handling
+        props.apiClient.sessionManager.instance.has({})
+            .then((v) => { setShouldLogin(!v); });
+    }, [props.apiClient]);
+
+    // TODO
+    if (shouldLogin == null)
+        return null;
+
+    if (!shouldLogin)
+        return <DashboardScreen
+            apiClient={props.apiClient}
+            onLogoutSuccess={async () => {
+                setShouldLogin(true);
+                await props.onLogoutSuccess?.();
+            }}
+        />;
+
+    return <LoginScreen
+        apiClient={props.apiClient}
+        onAuthSuccess={async () => {
+            await props.onLoginSuccess?.();
+        }}
+    />;
+};
+
+
+export function render(
     document: Document = window.document
 ) {
     // TODO
@@ -43,16 +75,22 @@ function useApp(
             url: new URL(config.routes.api, document.baseURI),
         }));
 
+    // TODO
     ReactDOM.createRoot(rootElement).render(
         <React.StrictMode>
-            <LoginScreen
+            <Screen 
                 apiClient={apiClient}
-                onAuthSuccess={async () => {
-                    window.location.href = params.get("next") ?? config.routes.view;
+                onLoginSuccess={async () => {
+                    window.location.href 
+                        = params.get("next") ?? config.routes.view;
+                }}
+                onLogoutSuccess={async () => {
+                    // TODO reload
+                    // window.location.href = params.get("next") ?? config.routes.auth;
                 }}
             />
         </React.StrictMode>,
     );
 }
 
-useApp();
+render();

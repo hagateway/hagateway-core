@@ -3,6 +3,14 @@
 ## TODOs
 
 ```
+npm install
+npm run build --workspaces
+npx @hagateway/server serve '{"context": {"runtimeDirectory": "/tmp/todo"}}' '{"include": "./.temp/example.mjs"}'
+npm --workspace=packages/server start -- serve '{"context": {"runtimeDirectory": "/tmp/todo"}}' '{"include": "./.temp/example.mjs"}'
+
+```
+
+```
 npm version prerelease --preid=alpha
 ```
 

@@ -114,7 +114,8 @@ namespace SystemdRefOps {
 }
 
 
-import Path from "path";
+import Path from "node:path";
+import { waitForFile } from "./utils/fs";
 
 namespace SystemdRuntimeDirOps {
     // TODO
@@ -287,9 +288,6 @@ export class SystemdAppletManager implements IAppletManager {
 
         const man = await this.dbus.Manager();
 
-        // TODO
-        console.log("TODO pre: create applet unit", ref, props);
-
         // TODO !!!!!
         try {
             await man.StartTransientUnit(
@@ -297,10 +295,10 @@ export class SystemdAppletManager implements IAppletManager {
                 "fail", // mode
                 props, // properties
                 [], // aux
-            );            
+            );
         } catch (error) {
             throw new Error(
-                `Failed to to create applet: ${ref}`,
+                `Failed to to create systemd applet unit: ${ref} - ${props}`,
                 { cause: error },
             );
         }
@@ -389,12 +387,15 @@ export class SystemdAppletManager implements IAppletManager {
                 throw new Error("TODO not implemented");
                 break;
             case "unix":
+                const { socketPath } = unitData.proxy.transport;
+                if (socketPath == null)
+                    throw new Error("TODO");
                 proxyOptions.target = {
                     host: "localhost",
                     port: 0,
-                    socketPath: 
-                        unitData.proxy.transport.socketPath,
+                    socketPath,
                 };
+                await waitForFile(socketPath);
                 break;
             default:
                 throw new Error(
@@ -413,7 +414,7 @@ export class SystemdAppletManager implements IAppletManager {
         router.use((req, res, next) => {
             if (res.upgrade != null) {
                 if (res.socket == null)
-                    throw new Error("HTTP upgrade detected but no socket");
+                    throw new Error("HTTP upgrade detected but `res.socket` is `null`");
                 return proxyMiddleware.upgrade(req, res.socket, res.upgrade.head);
             }
             return proxyMiddleware(req, res, next);
