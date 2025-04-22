@@ -17,6 +17,7 @@ export const Screen: React.FunctionComponent<{
     apiClient: ContractRouterClient<typeof AppAPIContract>;
     onLoginSuccess?: () => Promise<void>;
     onLogoutSuccess?: () => Promise<void>;
+    onProceed?: () => Promise<void>;
 }> = (props) => {
     const [shouldLogin, setShouldLogin] = React.useState<boolean>();
 
@@ -37,6 +38,7 @@ export const Screen: React.FunctionComponent<{
                 setShouldLogin(true);
                 await props.onLogoutSuccess?.();
             }}
+            onProceed={props.onProceed}
         />;
 
     return <LoginScreen
@@ -72,6 +74,14 @@ export function render(
             url: new URL(config.routes.api, document.baseURI),
         }));
 
+    const onProceed = async () => {
+        // TODO
+        const params = new URLSearchParams(document.location.search);
+        const nextPath = params.get("next") ?? config.routes.applet;
+        if (nextPath != null)
+            document.location.href = nextPath;
+    };
+
     // TODO
     ReactDOM.createRoot(rootElement).render(
         <React.StrictMode>
@@ -79,15 +89,13 @@ export function render(
                 apiClient={apiClient}
                 onLoginSuccess={async () => {
                     // TODO
-                    const params = new URLSearchParams(document.location.search);
-                    const nextPath = params.get("next") ?? config.routes.applet;
-                    if (nextPath != null)
-                        document.location.href = nextPath;
+                    await onProceed();
                 }}
                 onLogoutSuccess={async () => {
                     // TODO reload
                     // window.location.href = params.get("next") ?? config.routes.auth;
                 }}
+                onProceed={onProceed}
             />
         </React.StrictMode>,
     );

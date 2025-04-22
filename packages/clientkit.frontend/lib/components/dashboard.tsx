@@ -45,6 +45,7 @@ import { safe } from "@orpc/client";
 export interface DashboardScreenProps {
     apiClient: ContractRouterClient<typeof AppAPIContract>;
     onLogoutSuccess?: () => Promise<void>;
+    onProceed?: () => Promise<void>;
 }
 
 export const DashboardScreen: React.FunctionComponent<DashboardScreenProps>
@@ -80,10 +81,18 @@ export const DashboardScreen: React.FunctionComponent<DashboardScreenProps>
                         await props.onLogoutSuccess?.();
                     }}>Logout</P.Button>
                     {/* <P.Button variant="danger">Kill Applet</P.Button> */}
-                    {/* <P.Button variant="secondary">Start Applet</P.Button>
-                    <P.Button variant="link" icon={<P.ArrowRightIcon />} iconPosition="end">
-                    Proceed to <strong>Application</strong>
-                    </P.Button> */}
+                    {/* <P.Button variant="secondary">Start Applet</P.Button>*/}
+                    <P.Button 
+                        variant="link" 
+                        icon={<PIcons.ArrowRightIcon />} 
+                        iconPosition="end"
+                        onClick={async (event) => {
+                            event.preventDefault();
+                            await props.onProceed?.();
+                        }}
+                    >
+                        Proceed to <strong>Application</strong>
+                    </P.Button>
                 </P.Flex>
             </P.LoginPage>
         );
