@@ -95,6 +95,7 @@ export function App({
     // TODO const onErrorDisplay = Express.Router();
 
     var apiApp: Express.Application | null = null;
+    // TODO multiple??
     var appletApp: Express.Application | null = null;
 
     app.use((req) => sessionManager.serve(req));
@@ -173,8 +174,14 @@ export function App({
     };
 
     app.useAppletServing = (path: string) => {
+        if (appletApp != null)
+            throw new Error(`Applet serving already mounted to this app at ${appletApp.mountpath}`);
+
+        appletApp = Express();
+        app.use(path, appletApp);
+
         // TODO appletmanager per route?????
-        app.use(path, async (req, res, next) => {
+        appletApp.use(async (req, res, next) => {
             const sessionData = await sessionManager.query(req);
             if (sessionData == null) {
                 onUnauthorized(req, res, next);

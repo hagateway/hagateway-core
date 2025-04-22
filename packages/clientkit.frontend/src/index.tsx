@@ -63,9 +63,6 @@ export function render(
     // TODO
     // ...
 
-    // TODO
-    const params = new URLSearchParams(document.location.search);
-
     const rootElement = document.getElementById("root");
     if (rootElement == null)
         throw new Error("Root element not found");
@@ -81,8 +78,11 @@ export function render(
             <Screen 
                 apiClient={apiClient}
                 onLoginSuccess={async () => {
-                    window.location.href 
-                        = params.get("next") ?? config.routes.view;
+                    // TODO
+                    const params = new URLSearchParams(document.location.search);
+                    const nextPath = params.get("next") ?? config.routes.applet;
+                    if (nextPath != null)
+                        document.location.href = nextPath;
                 }}
                 onLogoutSuccess={async () => {
                     // TODO reload
