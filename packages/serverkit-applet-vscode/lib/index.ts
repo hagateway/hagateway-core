@@ -24,7 +24,7 @@ export function VSCodeAppletSpawner(): IAppletSpawner {
                 "--accept-server-license-terms",
                 "--without-connection-token",
                 // TODO
-                "--server-base-path", spec.baseUrl,
+                // "--server-base-path", spec.baseUrl,
                 "--socket-path", proxySpec.transport.socketPath,
                 // "--verbose", "--log", "trace",
             ],

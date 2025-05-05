@@ -28,6 +28,12 @@ export function View(): IView {
             res.send(dom.serialize());
         }) satisfies ViewRequestHandler
     );
+    app.get("/error", 
+        async (_, res) => {
+            const f = Path.join(Frontend.path, "error.html");
+            res.sendFile(f);
+        },
+    );
     // TODO
     app.use(Express.static(Frontend.path));
 
@@ -41,6 +47,9 @@ export function View(): IView {
     };
 
     // TODO 
+    (app as IView).onErrorDisplay = (_req, res) => {
+        res.redirect(`${res.locals.routes.view}/error`);
+    };
 
     return app;
 }

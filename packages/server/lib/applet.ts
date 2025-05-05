@@ -1,8 +1,11 @@
 import Express from "express";
+import { implement } from "@orpc/server";
+import { AppletState, AppletManagerAPIContract } from "@hagateway/api/dist/lib/applet";
+
+import { ISessionManager } from "./session";
 
 
 export interface AppletSpec {
-    baseUrl: string;
     user: string;
 }
 
@@ -53,7 +56,9 @@ export interface IAppletSpawner {
     onRequest?: Express.RequestHandler;
 }
 
+
 // TODO filesystem like interface
+// TODO state change: active, reloading, inactive, failed, activating, deactivating
 export interface IAppletManager {
     // TODO
     use(spawner: IAppletSpawner): IAppletManager;
@@ -68,12 +73,11 @@ export interface IAppletManager {
     has(ref: string): Promise<boolean>;
 
     serve?(ref: string): Promise<Express.RequestHandler>;
+
+    // TODO !!!!!
+    getState(ref: string): Promise<AppletState>;
+    onStateChange(ref: string): AsyncIterable<AppletState>;
 }
-
-import { ISessionManager } from "./session";
-
-import { implement } from "@orpc/server";
-import { AppletManagerAPIContract } from "@hagateway/api/dist/lib/applet";
 
 
 export function AppletManagerAPIImpl(
@@ -86,6 +90,15 @@ export function AppletManagerAPIImpl(
     const os = implement(AppletManagerAPIContract)
         .$context<{ req: Express.Request }>();
 
+    const getSessionData = async (context: { req: Express.Request }) => {
+        const sessionData 
+            = await config.sessionManager.query(context.req);
+        if (sessionData == null)
+            throw new Error("Session not found");
+
+        return sessionData;
+    };
+
     return os.router({
         info: os.info.handler(() => {
             return {
@@ -95,10 +108,22 @@ export function AppletManagerAPIImpl(
         // TODO
         instance: {
             create: os.instance.create.handler(
-                async ({ input }) => {
+                async ({ input, context }) => {
                     if (input.ref != null)
                         throw new Error("TODO ref not supported");
-                    throw new Error("TODO not implemented");
+
+                    const sessionData = await getSessionData(context);
+
+                    if (sessionData.appletRef == null)
+                        throw new Error("Applet ref not found in session");
+
+                    if (await config.appletManager.has(sessionData.appletRef))
+                        throw new Error("Applet already exists");
+
+                    await config.appletManager.create(
+                        sessionData.appletRef, 
+                        { user: sessionData.user, },
+                    );
                 }
             ),
             destroy: os.instance.destroy.handler(
@@ -107,22 +132,66 @@ export function AppletManagerAPIImpl(
                         throw new Error("TODO ref not supported");
 
                     // TODO
-                    const sessionData 
-                        = await config.sessionManager.query(context.req);
-                    if (sessionData == null)
-                        throw new Error("Session not found");
+                    const sessionData = await getSessionData(context);
+
+                    if (sessionData.appletRef == null)
+                        throw new Error("Applet ref not specified");
+                    try {
+                        await config.appletManager.destroy(sessionData.appletRef);
+                    } catch (error) {
+                        throw new Error("Applet destroy failed", { cause: error });
+                    }
+                }
+            ),
+            getState: os.instance.getState.handler(
+                async ({ input, context }) => {
+                    if (input.ref != null)
+                        throw new Error("TODO ref not supported");
+
+                    // TODO
+                    const sessionData = await getSessionData(context);
+
+                    if (sessionData.appletRef == null)
+                        throw new Error("Applet ref not found");
+
+                    try {
+                        return await config.appletManager.getState(sessionData.appletRef);
+                    } catch (error) {
+                        // TODO !!!!!!!
+                        console.error("Error in getState", error);
+                        throw new Error("Applet getState failed", { cause: error });
+                    }
+                }
+            ),
+            // TODO error handling !!!!!!
+            onStateChange: os.instance.onStateChange.handler(
+                // TODO
+                async function* ({ input, context }) {
+                    if (input.ref != null)
+                        throw new Error("TODO ref not supported");
+
+                    // TODO
+                    const sessionData = await getSessionData(context);
 
                     if (sessionData.appletRef == null)
                         throw new Error("Applet not found");
-                    await config.appletManager.destroy(sessionData.appletRef);
+
+                    try {
+                        for await (const state of config.appletManager.onStateChange(sessionData.appletRef)) {
+                            try {
+                                yield state;
+                            } catch (error) {
+                                // TODO !!!!!!!
+                                console.error("Error in onStateChange yield", error);
+                            }
+                        }
+                    } catch (error) {
+                        // TODO !!!!!!!
+                        console.error("Error in onStateChange", error);
+                        // throw error;
+                    }
                 }
             ),
-            // subscribe: {
-            //     statechange: os.instance.subscribe.statechange.handler(async () => {
-            //         // TODO
-            //         return {};
-            //     }),
-            // },
         }
     });
 }

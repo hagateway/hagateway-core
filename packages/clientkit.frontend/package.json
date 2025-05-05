@@ -1,6 +1,6 @@
 {
   "name": "@hagateway/clientkit.frontend",
-  "version": "0.0.1-alpha.7",
+  "version": "0.0.1-alpha.8",
   "type": "module",
   "main": "index.mjs",
   "description": "",
@@ -19,9 +19,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@hagateway/api": "^0.0.1-alpha.3",
+    "@hagateway/api": "^0.0.1-alpha.4",
     "@orpc/client": "^0.54.0",
     "@orpc/contract": "^0.54.0",
+    "@patternfly/react-component-groups": "^6.2.1",
     "@patternfly/react-core": "^6.2.1",
     "@patternfly/react-icons": "^6.2.1",
     "react": "^18.3.1",

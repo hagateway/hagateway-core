@@ -1,89 +1,8 @@
+import Path from "node:path";
 import { Buffer } from "node:buffer";
 
 import * as DBus from "dbus-next";
-
-
-namespace SystemdDBus {
-    export const enum Path {
-        Unit = "org.freedesktop.systemd1.Unit",
-        Service = "org.freedesktop.systemd1.Service",
-    }
-
-    export const enum Error {
-        NoSuchUnit = "org.freedesktop.systemd1.NoSuchUnit",
-        UnknownProperty = "org.freedesktop.DBus.Error.UnknownProperty",
-    }
-}
-
-class SystemdDBus {
-    protected readonly bus: DBus.MessageBus;
-
-    constructor(dbus: DBus.MessageBus | "session" | "system") {
-        switch (dbus) {
-            case "session":
-                this.bus = DBus.sessionBus();
-                break;
-            case "system":
-                this.bus = DBus.systemBus();
-                break;
-            default:
-                this.bus = dbus;
-                break;
-        }
-    }
-
-    // TODO cache??
-    async Manager() {
-        return (
-            await this.bus.getProxyObject(
-                "org.freedesktop.systemd1", 
-                "/org/freedesktop/systemd1",
-            )
-        ).getInterface("org.freedesktop.systemd1.Manager");
-    }
-
-    async Properties(path: string) {
-        return (
-            await this.bus.getProxyObject(
-                "org.freedesktop.systemd1", 
-                path,
-            )
-        ).getInterface("org.freedesktop.DBus.Properties");
-    }
-
-    async getUnitProperty(
-        unitName: string, 
-        path: SystemdDBus.Path, propName: string,
-        defaultVal?: any,
-    ) {
-        const man = await this.Manager();
-        const props = await this.Properties(
-            await man.GetUnit(unitName)
-        );
-
-        try {
-            return (await props.Get(path, propName)).value;
-        } catch (err) {
-            if (err instanceof DBus.DBusError) {
-                switch (err.type) {
-                case SystemdDBus.Error.UnknownProperty:
-                    return defaultVal;
-                default:
-                    break;
-                }
-            }
-            throw new Error(
-                `An error occurred while querying unit property over DBus: ${unitName}`, 
-                { cause: err },
-            );
-        }
-    }
-}
-
-
-
-
-import { AppletSpec, IAppletManager, IAppletSpawner, AppletProxySpec, AppletProcessSpec } from "@hagateway/server/dist/lib/applet";
+import Express from "express";
 import {
     Options as ProxyOptions,
     createProxyMiddleware as ProxyMiddleware,
@@ -91,9 +10,17 @@ import {
 // TODO
 import "http-upgrade-request";
 
+import { AppletState } from "@hagateway/api/dist/lib/applet";
+import { 
+    AppletSpec, 
+    IAppletManager, 
+    IAppletSpawner, 
+    AppletProxySpec, 
+    AppletProcessSpec,
+} from "@hagateway/server/dist/lib/applet";
 
-
-import Express from "express";
+import { waitForFile } from "./utils/fs";
+import { SystemdDBus } from "./utils/systemd";
 
 
 namespace SystemdRefOps {
@@ -114,13 +41,17 @@ namespace SystemdRefOps {
 }
 
 
-import Path from "node:path";
-import { waitForFile } from "./utils/fs";
+
 
 namespace SystemdRuntimeDirOps {
     // TODO
     export function generate(ref: string, baseName: string): string {
-        return Path.join("/run", baseName, Buffer.from(ref).toString("base64url"));
+        return Path.join(
+            "/run", [
+                Buffer.from(ref).toString("base64url"), 
+                baseName,
+            ].join(".")
+        );
     }
 }
 
@@ -219,7 +150,6 @@ export class SystemdAppletManager implements IAppletManager {
             });            
         }
 
-
         const props: [string, any][] = [];
 
         // TODO
@@ -286,11 +216,11 @@ export class SystemdAppletManager implements IAppletManager {
                 ),
             ]);
 
-        const man = await this.dbus.Manager();
+        const manager = await this.dbus.Manager();
 
         // TODO !!!!!
         try {
-            await man.StartTransientUnit(
+            await manager.StartTransientUnit(
                 SystemdRefOps.encode(ref, this.baseUnitName), // name
                 "fail", // mode
                 props, // properties
@@ -303,20 +233,33 @@ export class SystemdAppletManager implements IAppletManager {
             );
         }
 
+        await this.wait(ref);
+
         return ref;
     }
 
+    protected async wait(ref: string) {
+        var state = await this.getState(ref);
+        if (state === "active")
+            return;
+
+        for await (state of this.onStateChange(ref)) {
+            if (state === "active")
+                return;
+        }
+    }
+
     async destroy(ref: string) {
-        const man = await this.dbus.Manager();
-        await man.StopUnit(
+        const manager = await this.dbus.Manager();
+        await manager.StopUnit(
             SystemdRefOps.encode(ref, this.baseUnitName), // name
             'fail', // mode
         );
     }
 
     async* refs() {
-        const man = await this.dbus.Manager();
-        for (const [unitName] of await man.ListUnits()) {
+        const manager = await this.dbus.Manager();
+        for (const [unitName] of await manager.ListUnits()) {
             const ref = SystemdRefOps.decode(unitName, this.baseUnitName);
             if (ref != null)
                 yield ref;
@@ -324,9 +267,9 @@ export class SystemdAppletManager implements IAppletManager {
     }
 
     async has(ref: string) {
-        const man = await this.dbus.Manager();
+        const manager = await this.dbus.Manager();
         try {
-            await man.GetUnit(SystemdRefOps.encode(ref, this.baseUnitName));
+            await manager.GetUnit(SystemdRefOps.encode(ref, this.baseUnitName));
             return true;
         } catch (error) {
             if (error instanceof DBus.DBusError) {
@@ -349,7 +292,7 @@ export class SystemdAppletManager implements IAppletManager {
     : Promise<SystemdUnitData> {
         const unitName = SystemdRefOps.encode(ref, this.baseUnitName);
 
-        const dataEncoded = await this.dbus.getUnitProperty(
+        const dataEncoded = await this.dbus.getUnitPropertyValue(
             unitName, 
             SystemdDBus.Path.Unit, 
             "Description",
@@ -421,5 +364,43 @@ export class SystemdAppletManager implements IAppletManager {
         });
 
         return router;
+    }
+
+    protected mapState(unitState: string): AppletState {
+        switch (unitState) {
+            case "active": break;
+            case "reloading": break;
+            case "inactive": break;
+            case "failed": break;
+            case "activating": break;
+            case "deactivating": break;
+            default:
+                return "unknown";
+        }
+        return unitState;
+    }
+
+    async getState(ref: string) {
+        const unitName = SystemdRefOps.encode(ref, this.baseUnitName);
+        
+        // TODO !!!!! validate
+        return this.mapState(
+            await this.dbus.getUnitPropertyValue(
+                unitName, 
+                SystemdDBus.Path.Unit, 
+                "ActiveState",
+            )
+        );
+    }
+
+    // TODO !!!!! 
+    async* onStateChange(ref: string) {
+        const unitName = SystemdRefOps.encode(ref, this.baseUnitName);
+
+        for await (const res of this.dbus.onUnitPropertyChange(
+            unitName, 
+            SystemdDBus.Path.Unit, 
+            "ActiveState",
+        )) { yield this.mapState(res); }
     }
 }

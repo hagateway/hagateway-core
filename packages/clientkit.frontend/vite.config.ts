@@ -8,6 +8,12 @@ export default defineConfig({
     outDir: "../dist/src",
     emptyOutDir: false,
     sourcemap: true,
+    rollupOptions: {
+      input: {
+        index: "src/index.html",
+        error: "src/error.html",
+      },
+    },
   },
   base: "./",
   plugins: [react()],

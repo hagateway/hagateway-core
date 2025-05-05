@@ -110,10 +110,17 @@ export const LoginScreen: React.FunctionComponent<LoginScreenProps>
 export const PasswordAuthDialog
     : React.FunctionComponent<AuthDialogProps> & AuthDialogConstructor
     = (props: AuthDialogProps) => {
+        const [splash, setSplash] = React.useState<React.ReactNode>();
+        
         const [errorMessage, setErrorMessage] = React.useState<string | null>();
 
         const [username, setUsername] = React.useState<string>();
         const [password, setPassword] = React.useState<string>();
+
+        if (splash != null) {
+            // TODO
+            return splash;
+        }
 
         return (
             <P.LoginForm
@@ -141,6 +148,11 @@ export const PasswordAuthDialog
                         return;
                     }
 
+                    setSplash(
+                        <P.Icon isInProgress>
+                            <PIcons.SyncIcon />
+                        </P.Icon>
+                    );
                     const { error } = await safe(props.apiClient.auth.callback({
                         type: "password",
                         ref: props.authRef,
@@ -149,13 +161,18 @@ export const PasswordAuthDialog
                     }));
                     if (error != null) {
                         setErrorMessage(error.message);
+                        setSplash(null);
                         return;
                     }
 
                     // TODO
                     setErrorMessage(null);
-                    // TODO !!!!!
                     await props.onAuthSuccess?.();
+                    setSplash(
+                        <P.Icon status="success">
+                            <PIcons.CheckCircleIcon />
+                        </P.Icon>
+                    );
                 }}
             // rememberMeLabel="Keep me logged in for 30 days."
             // onChangeRememberMe={() => {}}

@@ -1,6 +1,6 @@
 {
     "name": "@hagateway/serverkit-applet-vscode",
-    "version": "0.0.1-alpha.2",
+    "version": "0.0.1-alpha.3",
     "description": "",
     "files": [
         "dist/",
@@ -20,6 +20,6 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@hagateway/server": "^0.0.1-alpha.2"
+        "@hagateway/server": "^0.0.1-alpha.6"
     }
 }

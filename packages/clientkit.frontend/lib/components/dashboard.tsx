@@ -1,45 +1,122 @@
 
-import React from 'react';
-import * as P from '@patternfly/react-core';
+import React from "react";
+import * as P from "@patternfly/react-core";
 import * as PIcons from "@patternfly/react-icons";
 import "@patternfly/react-core/dist/styles/base.css";
+import { AppletState } from "@hagateway/api/dist/lib/applet";
+
+import { ActionButton } from "./ui/action";
 
 
-export const ConfirmModal = () => {
-    const [isModalOpen, setIsModalOpen] = React.useState(false);
+export interface AppletControlPanelProps {
+    apiClient: ContractRouterClient<typeof AppAPIContract>;
+}
 
-    const handleModalToggle = (_event: KeyboardEvent | React.MouseEvent) => {
-        setIsModalOpen((prevIsModalOpen) => !prevIsModalOpen);
+export const AppletControlPanel = (props: AppletControlPanelProps) => {
+    const errorHandler = useErrorHandler();
+
+    const [appletState, setAppletState] = React.useState<AppletState>();
+    const [modal, setModal] = React.useState<React.ReactNode>();
+
+    React.useEffect(() => {
+        const todo = async () => {
+            const api = props.apiClient.appletManager.instance;
+            try {
+                setAppletState(await api.getState({}));
+                for await (const state of await api.onStateChange({})) {
+                    setAppletState(state);
+                }                
+            } catch (error) {
+                errorHandler(error);
+            }
+        };
+        todo();
+    }, [props.apiClient]);
+
+    const startApplet = async () => {
+        await props.apiClient.appletManager.instance.create({});
     };
 
-    return (
-        <P.Modal
-            variant="small"
-            isOpen={isModalOpen}
-            onClose={handleModalToggle}
-            aria-labelledby="scrollable-modal-title"
-            aria-describedby="modal-box-body-scrollable"
-        >
-            <P.ModalHeader title="Modal with overflowing content" labelId="scrollable-modal-title" />
-            <P.ModalBody tabIndex={0} id="modal-box-body-scrollable" aria-label="Scrollable modal content">
-                Very dangerous action.
-            </P.ModalBody>
-            <P.ModalFooter>
-                <P.Button key="confirm" variant="danger">
-                    Kill Applet
-                </P.Button>
-                <P.Button key="cancel" variant="link" onClick={handleModalToggle}>
-                    Cancel
-                </P.Button>
-            </P.ModalFooter>
-        </P.Modal>
-    );
+    const killApplet = async () => {
+        setModal(
+            <ConfirmModal
+                title="Kill Applet"
+                body={<>
+                    Are you sure you want to terminate the applet? 
+                    Any unsaved data may be lost, and connected services may become unresponsive.
+                </>}
+                confirmText="Kill Applet"
+                cancelText="Cancel"
+                onConfirm={async () => {
+                    await props.apiClient.appletManager.instance.destroy({});
+                    setModal(null);
+                }}
+                isOpen={true}
+                onClose={() => {
+                    setModal(null);
+                }}
+            />
+        );
+    };
+
+    var button: React.ReactNode = null;
+    switch (appletState) {
+        case "unknown":
+            button = <ActionButton isDisabled isLoading>
+                Applet Unavailable
+            </ActionButton>;
+            break;
+        case "active":
+            button = <ActionButton variant="danger" onClick={killApplet}>
+                Kill Applet
+            </ActionButton>;
+            break;
+        case "reloading":
+            button = <ActionButton isDisabled isLoading>
+                Reloading Applet
+            </ActionButton>;
+            break;
+        case "inactive":
+            button = <ActionButton
+                variant="primary"
+                onClick={startApplet}
+            >
+                Start Applet
+            </ActionButton>
+            break;
+        case "failed":
+            button = <ActionButton variant="warning" onClick={startApplet}>
+                Start Applet
+            </ActionButton>;
+            break;
+        case "activating":
+            button = <ActionButton isDisabled isLoading>
+                Starting Applet
+            </ActionButton>;
+            break;
+        case "deactivating":
+            button = <ActionButton isDisabled isLoading>
+                Stopping Applet
+            </ActionButton>;
+            break;
+        default:
+            break;
+    }
+
+    return <>
+        <P.Flex>
+            {button}
+        </P.Flex>
+        {modal}
+    </>;
 };
 
 
 import { ContractRouterClient } from "@orpc/contract";
 import { AppAPIContract } from "@hagateway/api/dist/lib/app";
 import { safe } from "@orpc/client";
+import { ConfirmModal } from "./ui/confirm";
+import { useErrorHandler } from "./ui/error";
 
 
 export interface DashboardScreenProps {
@@ -65,34 +142,36 @@ export const DashboardScreen: React.FunctionComponent<DashboardScreenProps>
                 loginTitle="Welcome!"
                 loginSubtitle="You are already logged in. Select an action below."
             >
-                <P.Flex columnGap={{ default: "columnGapSm" }}>
-                    <P.Button variant="primary" onClick={async (event) => {
-                        event.preventDefault();
+                <P.Flex direction={{ default: "column" }}>
+                    <P.Flex>
+                        <ActionButton variant="primary" onClick={async () => {
+                            const { error } = await safe(
+                                props.apiClient.sessionManager.instance.destroy({})
+                            );
+                            if (error != null) {
+                                // TODO !!!!!!!
+                                throw error;
+                            }
 
-                        const { error } = await safe(
-                            props.apiClient.sessionManager.instance.destroy({})
-                        );
-                        if (error != null) {
-                            // TODO !!!!!!!
-                            console.error("Logout failed", error);
-                            return;
-                        }
-
-                        await props.onLogoutSuccess?.();
-                    }}>Logout</P.Button>
-                    {/* <P.Button variant="danger">Kill Applet</P.Button> */}
-                    {/* <P.Button variant="secondary">Start Applet</P.Button>*/}
-                    <P.Button 
-                        variant="link" 
-                        icon={<PIcons.ArrowRightIcon />} 
-                        iconPosition="end"
-                        onClick={async (event) => {
-                            event.preventDefault();
-                            await props.onProceed?.();
-                        }}
+                            await props.onLogoutSuccess?.();
+                        }}>Log out</ActionButton>
+                        <ActionButton
+                            variant="link"
+                            icon={<PIcons.ArrowRightIcon />}
+                            iconPosition="end"
+                            onClick={async () => {
+                                await props.onProceed?.();
+                            }}
+                        >
+                            Proceed to <strong>Application</strong>
+                        </ActionButton>
+                    </P.Flex>
+                    <P.ExpandableSection
+                        toggleTextExpanded="Hide advanced options"
+                        toggleTextCollapsed="Show advanced options"
                     >
-                        Proceed to <strong>Application</strong>
-                    </P.Button>
+                        <AppletControlPanel apiClient={props.apiClient} />
+                    </P.ExpandableSection>
                 </P.Flex>
             </P.LoginPage>
         );

@@ -8,9 +8,28 @@ import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 
 import { Config } from "../index";
+
 // TODO
 import { LoginScreen } from "../lib/components/login";
 import { DashboardScreen } from "../lib/components/dashboard";
+
+
+import * as PGroup from "@patternfly/react-component-groups";
+import "@patternfly/react-core/dist/styles/base.css";
+
+
+export interface ErrorBoundaryProps {
+    children?: React.ReactNode;
+}
+
+export const ErrorBoundary
+: React.FunctionComponent<ErrorBoundaryProps> 
+= (props) => {
+    return <PGroup.ErrorBoundary 
+        errorTitle="Something wrong happened"
+        children={props.children} 
+    />;
+};
 
 
 export const Screen: React.FunctionComponent<{
@@ -50,11 +69,23 @@ export const Screen: React.FunctionComponent<{
     />;
 };
 
+export const App: React.FunctionComponent<{
+    window: Window;
+}> = ({ window }) => {
+    const document = window.document;
 
-export function render(
-    document: Document = window.document
-) {
-    // TODO
+    React.useEffect(() => {
+        const handlePageShow = (event: PageTransitionEvent) => {
+            if (event.persisted) {
+                // TODO
+                window.location.reload();
+            }
+        };
+        window.addEventListener("pageshow", handlePageShow);
+        return () => window.removeEventListener("pageshow", handlePageShow);
+    }, [window]);
+
+
     const configElement = document.querySelector("script#config");
     if (configElement == null)
         throw new Error("Config element not found");
@@ -70,36 +101,55 @@ export function render(
     if (rootElement == null)
         throw new Error("Root element not found");
 
-    const apiClient: ContractRouterClient<typeof AppAPIContract> 
+    const apiClient: ContractRouterClient<typeof AppAPIContract>
         = createORPCClient(new RPCLink({
             url: new URL(config.routes.api, document.baseURI),
         }));
+
+    const [isInProgress, setIsInProgress] = React.useState<boolean>(false);
 
     const onProceed = async () => {
         // TODO
         const params = new URLSearchParams(document.location.search);
         const nextPath = params.get("next") ?? config.routes.applet;
-        if (nextPath != null)
+        if (nextPath != null) {
             document.location.href = nextPath;
+            setIsInProgress(true);
+        }
     };
+
+    if (isInProgress)
+        return null;
+
+    return <Screen
+        apiClient={apiClient}
+        onLoginSuccess={async () => {
+            // TODO
+            await onProceed();
+        }}
+        onLogoutSuccess={async () => {
+            // TODO reload
+            // window.location.href = params.get("next") ?? config.routes.auth;
+        }}
+        onProceed={onProceed}
+    />;
+};
+
+
+export function render(window: Window) {
+    // TODO
+    const rootElement = window.document.getElementById("root");
+    if (rootElement == null)
+        throw new Error("Root element not found");
 
     // TODO
     ReactDOM.createRoot(rootElement).render(
         <React.StrictMode>
-            <Screen 
-                apiClient={apiClient}
-                onLoginSuccess={async () => {
-                    // TODO
-                    await onProceed();
-                }}
-                onLogoutSuccess={async () => {
-                    // TODO reload
-                    // window.location.href = params.get("next") ?? config.routes.auth;
-                }}
-                onProceed={onProceed}
-            />
+            <ErrorBoundary>
+                <App window={window} />
+            </ErrorBoundary>
         </React.StrictMode>,
     );
 }
 
-render();
+render(window);

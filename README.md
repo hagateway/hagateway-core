@@ -1,6 +1,48 @@
-# 
+# hagateway-core
 
 ## TODOs
+
+
+- err boundary
+
+- orpc error handling - console output??
+
+- waitForFile bug!!!! intermediate dirs not watched!!!!!
+
+```
+import chokidar from "chokidar";
+
+
+export async function waitForFile(
+    filePath: string,
+    options?: { signal?: AbortSignal },
+): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const watcher = chokidar.watch(
+            filePath, {
+                persistent: true,
+                ignoreInitial: false,
+            }
+        )
+        .on("add", () => { watcher.close(); resolve(); })
+        .on("error", (error) => { watcher.close(); reject(error); });
+
+        if (options?.signal != null) {
+            const onAbort = () => {
+                watcher.close();
+                reject(options.signal?.reason);
+            };
+            if (options.signal.aborted)
+                return onAbort();
+            return options.signal.addEventListener(
+                "abort", onAbort, { once: true }
+            );
+        }
+    });
+}
+
+```
+
 
 - multiple listeners
 
@@ -23,13 +65,8 @@ npm version prerelease --preid=alpha
 ```
 
 
-- require.resolve('./TODO.ipynb', {paths: ['/home/sysadmin/lab/wagateway/.todo~']})
 - wait until unix socket available
-- import relative to config dir
 - TODO check if config permission too open
-- runtime/state directory std
-
-- serverkit-session-sql
 
 - offer default `config`
 - `crypto.randomBytes(32)` for secret

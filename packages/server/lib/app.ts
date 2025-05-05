@@ -1,7 +1,7 @@
 
 
 // TODO
-import Http from "http";
+import Http from "node:http";
 import { UpgradeListener } from "http-upgrade-request";
 
 
@@ -12,10 +12,10 @@ import { IAuthManager } from "./auth";
 import { IAppletManager } from "./applet";
 
 
-import { IView, ViewLocals } from "./view";
+import { ErrorViewLocals, IView, ViewLocals } from "./view";
 
 
-import { implement } from "@orpc/server";
+import { implement, onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/node";
 import { AppAPIContract } from "@hagateway/api/dist/lib/app";
 
@@ -91,8 +91,9 @@ export function App({
 
     // TODO !!!!
     const app: IApp = Express() as any;
-    const onUnauthorized = Express.Router();
-    // TODO const onErrorDisplay = Express.Router();
+    const onUnauthorized = Express();
+    // TODO 
+    const onErrorDisplay = Express();
 
     var apiApp: Express.Application | null = null;
     // TODO multiple??
@@ -105,11 +106,16 @@ export function App({
         if (apiApp != null)
             throw new Error(`API already mounted to this app at ${apiApp.mountpath}`);
 
-        const handler = new RPCHandler(AppAPIImpl({
-            authManager,
-            sessionManager,
-            appletManager,
-        }));
+        const handler = new RPCHandler(
+            AppAPIImpl({
+                authManager,
+                sessionManager,
+                appletManager,
+            }), 
+            // NOTE disabled due to controller already closed bug: 
+            // https://github.com/unnoq/orpc/issues/463
+            { eventIteratorKeepAliveEnabled: false },
+        );
 
         app.use(
             path,
@@ -170,6 +176,22 @@ export function App({
             );
         });
 
+        // TODO
+        onErrorDisplay.use((req, res, next) => {
+            if (view.onErrorDisplay == null)
+                return;
+            res.locals = {
+                ...res.locals,
+                ...getViewLocals(),
+            };
+            return view.onErrorDisplay(
+                req as any, 
+                // TODO
+                res as Express.Response<any, ErrorViewLocals>, 
+                next,
+            );
+        });
+
         return app;
     };
 
@@ -197,10 +219,7 @@ export function App({
                 // TODO
                 await appletManager.create(
                     sessionData.appletRef, 
-                    { 
-                        user: sessionData.user, 
-                        baseUrl: req.baseUrl,
-                    },
+                    { user: sessionData.user, },
                 );
 
             if (appletManager.serve == null) {
@@ -211,6 +230,15 @@ export function App({
             const applet = await appletManager.serve(sessionData.appletRef);
             return applet(req, res, next);
         });
+
+        appletApp.use(((error, req, res, next) => {
+            res.locals = {
+                error: error,
+                ...res.locals,
+            };
+            onErrorDisplay(req, res, next);
+            next(error);
+        }) as Express.ErrorRequestHandler);
 
         return app;
     };
