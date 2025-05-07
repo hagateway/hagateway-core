@@ -11,6 +11,7 @@ import { ISessionManager, SessionManager } from "../lib/session";
 import { IAppletSpawner, IAppletManager } from "../lib/applet";
 import { IView } from "../lib/view";
 import { App, Server } from "../lib/app";
+import { AccountManager, IAccountManager } from "../lib/account";
 
 
 export interface ConfigureContext {
@@ -22,6 +23,9 @@ export interface IKitConfig {
 }
 
 export interface IKitRegistry {
+    account: {
+        managers: Map<string, (config?: IKitConfig & object) => Promise<IAccountManager>>;
+    };
     auth: {
         managers: Map<string, (config?: IKitConfig & object) => Promise<IAuthManager>>;
         providers: Map<string, (config?: IKitConfig & object) => Promise<IAuthProvider>>;
@@ -38,6 +42,11 @@ export interface IKitRegistry {
 
 export function KitRegistry(): IKitRegistry {
     return {
+        account: {
+            managers: new Map([
+                ["default", async () => new AccountManager()],
+            ]),
+        },
         auth: {
             managers: new Map([
                 ["default", async () => new AuthManager()],
@@ -126,6 +135,10 @@ export interface RunConfig {
     kits?: (string | IKit)[];
     net: string | { host: string; port: number; };
     // http: {};
+    // TODO
+    account: {
+        manager: RunConfig.Instantiable<IKitConfig & object, IAccountManager>;
+    };
     auth: { 
         manager: RunConfig.Instantiable<IKitConfig & object, IAuthManager>;
         providers: RunConfig.Instantiable<IKitConfig & object, IAuthProvider>[];
@@ -136,7 +149,7 @@ export interface RunConfig {
     applet: { 
         // TODO default subproc manager?
         manager: RunConfig.Instantiable<IKitConfig & object, IAppletManager>;        
-        spawners: RunConfig.Instantiable<IKitConfig & object, IAppletSpawner>[];
+        spawner: RunConfig.Instantiable<IKitConfig & object, IAppletSpawner>;
     };
     view?: RunConfig.Instantiable<IKitConfig & object, IView>;
 }
@@ -191,6 +204,7 @@ export function Main() {
 
     var runContext: RunContext | null = null;
     var netSpec: string | { host: string; port: number } | null = null;
+    var accountManager: IAccountManager | null = null;
     var authManager: IAuthManager | null = null;
     var sessionManager: ISessionManager | null = null;
     var appletManager: IAppletManager | null = null;
@@ -315,6 +329,34 @@ export function Main() {
                     netSpec = config.net!;
                     break;
                 }
+                case "account": {
+                    // TODO !!!!
+                    if (accountManager != null)
+                        throw {
+                            message: "Account manager already specified, "
+                                + "possibly in another config",
+                            details: {
+                                location: [key, config.account],
+                                target: config,
+                            },
+                        } satisfies RunConfig.ErrorInfo;
+
+                    accountManager = await RunConfig.instantiate(
+                        config.account!.manager,
+                        kitRegistry.account.managers,
+                        { context },
+                    );
+                    if (accountManager == null)
+                        throw {
+                            message: `Invalid account manager (reference): ${config.account!.manager}`,
+                            details: {
+                                location: [key, config.account],
+                                target: config,
+                            },
+                        } satisfies RunConfig.ErrorInfo;
+
+                    break;
+                }
                 case "auth": {
                     if (authManager != null)
                         throw {
@@ -412,23 +454,21 @@ export function Main() {
                             },
                         } satisfies RunConfig.ErrorInfo;
 
-                    for (const spawnerRef of config.applet!.spawners) {
-                        const spawner = await RunConfig.instantiate(
-                            spawnerRef, 
-                            kitRegistry.applet.spawners,
-                            { context },
-                        );
-                        if (spawner == null)
-                            throw {
-                                message: `Invalid applet spawner (reference): ${spawnerRef}`,
-                                details: {
-                                    location: [key, config.applet],
-                                    target: config,
-                                },
-                            } satisfies RunConfig.ErrorInfo;
-                        appletManager.use(spawner);
-                    }
-
+                    const spawner = await RunConfig.instantiate(
+                        config.applet!.spawner, 
+                        kitRegistry.applet.spawners,
+                        { context },
+                    );
+                    if (spawner == null)
+                        throw {
+                            message: `Invalid applet spawner (reference): ${config.applet!.spawner}`,
+                            details: {
+                                location: [key, config.applet],
+                                target: config,
+                            },
+                        } satisfies RunConfig.ErrorInfo;
+                    appletManager.useSpawner(spawner);
+                
                     break;
                 }
                 case "view": {
@@ -465,6 +505,12 @@ export function Main() {
     const run = async (config: Partial<RunConfig>) => {
         await configure(config);
 
+        // TODO hint ${kitRegistry.account.managers.keys()}
+        if (accountManager == null)
+            throw new Error(
+                "No account manager specified in the config. "
+                + "Did you set `account.manager`?",
+            );
         if (authManager == null)
             throw new Error(
                 "No auth manager specified in the config. "
@@ -482,6 +528,7 @@ export function Main() {
             );
 
         const app = App({
+            accountManager,
             authManager,
             sessionManager,
             appletManager,

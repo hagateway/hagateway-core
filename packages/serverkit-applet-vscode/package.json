@@ -1,6 +1,6 @@
 {
     "name": "@hagateway/serverkit-applet-vscode",
-    "version": "0.0.1-alpha.3",
+    "version": "0.0.1-alpha.4",
     "description": "",
     "files": [
         "dist/",
@@ -8,9 +8,6 @@
         "res/",
         "src/"
     ],
-    "exports": {
-        ".": "./dist/src/index.js"
-    },
     "scripts": {
         "build": "tsc",
         "watch": "tsc --watch",
@@ -20,6 +17,8 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@hagateway/server": "^0.0.1-alpha.6"
+        "@hagateway/server": "^0.0.1-alpha.7",
+        "datauri": "^4.1.0",
+        "image-data-uri": "^2.0.1"
     }
 }

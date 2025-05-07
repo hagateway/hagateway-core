@@ -15,16 +15,19 @@ import { IAppletManager } from "./applet";
 import { ErrorViewLocals, IView, ViewLocals } from "./view";
 
 
-import { implement, onError } from "@orpc/server";
+import { implement } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/node";
 import { AppAPIContract } from "@hagateway/api/dist/lib/app";
 
 import { AppletManagerAPIImpl } from "./applet";
 import { AuthAPIImpl } from "./auth";
 import { SessionManagerAPIImpl } from "./session";
+import { IAccountManager, AccountManagerAPIImpl } from "./account";
 
 
 export interface AppConfig {
+    // TODO
+    accountManager: IAccountManager;
     authManager: IAuthManager;
     sessionManager: ISessionManager;
     appletManager: IAppletManager;
@@ -41,6 +44,10 @@ export function AppAPIImpl(config: AppConfig) {
             return {
                 version: 0,
             };
+        }),
+        accountManager: AccountManagerAPIImpl({
+            accountManager: config.accountManager,
+            sessionManager: config.sessionManager,
         }),
         appletManager: AppletManagerAPIImpl({
             sessionManager: config.sessionManager,
@@ -72,6 +79,7 @@ export interface IApp extends Express.Application {
 }
 
 export function App({
+    accountManager,
     authManager,
     sessionManager,
     appletManager,
@@ -108,6 +116,7 @@ export function App({
 
         const handler = new RPCHandler(
             AppAPIImpl({
+                accountManager,
                 authManager,
                 sessionManager,
                 appletManager,

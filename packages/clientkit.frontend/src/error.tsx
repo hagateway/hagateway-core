@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import * as PGroup from "@patternfly/react-component-groups";
 import "@patternfly/react-core/dist/styles/base.css";
+import { ColorSchemeProvider } from "../lib/components/ui/color-scheme";
 
 
 export function render(window: Window) {
@@ -13,6 +14,7 @@ export function render(window: Window) {
     // TODO
     ReactDOM.createRoot(rootElement).render(
         <React.StrictMode>
+            <ColorSchemeProvider />
             <PGroup.ErrorState 
                 titleText="An error occurred" 
             />

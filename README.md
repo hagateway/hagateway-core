@@ -3,7 +3,7 @@
 ## TODOs
 
 
-- err boundary
+- get user info - real name... over dbus
 
 - orpc error handling - console output??
 

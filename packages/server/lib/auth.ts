@@ -23,18 +23,18 @@ export interface IAuthProvider {
     callback: (context: AuthContext) => Promise<void>;
 }
 
-export type IAuthProviderRef = [type: AuthType, name: string];
+export type AuthProviderRef = [type: AuthType, name: string];
 
 export interface IAuthManager {
     use(provider: IAuthProvider): IAuthManager;
-    serve(ref: IAuthProviderRef): IAuthProvider | undefined;
-    refs(): Iterable<IAuthProviderRef>;
-    query(ref: IAuthProviderRef): AuthInfo | undefined;
+    serve(ref: AuthProviderRef): IAuthProvider | undefined;
+    refs(): Iterable<AuthProviderRef>;
+    query(ref: AuthProviderRef): AuthInfo | undefined;
 }
 
 export class AuthManager implements IAuthManager {
     protected readonly authProvidersHashMap = new Map<string, IAuthProvider>();
-    protected readonly hashRef = (ref: IAuthProviderRef): string => {
+    protected readonly hashRef = (ref: AuthProviderRef): string => {
         return JSON.stringify(ref);
     };
     
@@ -50,17 +50,17 @@ export class AuthManager implements IAuthManager {
         return this;
     }
 
-    serve(ref: IAuthProviderRef) {
+    serve(ref: AuthProviderRef) {
         return this.authProvidersHashMap.get(this.hashRef(ref));
     }
 
     *refs() {
         for (const provider of this.authProvidersHashMap.values()) {
-            yield [provider.info.type, provider.info.ref] satisfies IAuthProviderRef;
+            yield [provider.info.type, provider.info.ref] satisfies AuthProviderRef;
         }
     }
 
-    query(ref: IAuthProviderRef) {
+    query(ref: AuthProviderRef) {
         return this.authProvidersHashMap.get(this.hashRef(ref))?.info;
     }
 }

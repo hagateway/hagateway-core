@@ -8,6 +8,8 @@ import { AppAPIContract } from "@hagateway/api/dist/lib/app";
 import { AuthType, AuthInfo } from "@hagateway/api/dist/lib/auth";
 
 import { Select, SelectList, SelectOption } from "./ui/select";
+import { AppletSpawnerInfo } from "@hagateway/api/dist/lib/applet";
+import { Page, PageMainBody, PageMainHeader } from "./page";
 
 
 // TODO
@@ -24,13 +26,13 @@ export interface AuthDialogConstructor {
 }
 
 
-export interface LoginScreenProps {
+export interface LoginPageProps {
     apiClient: ContractRouterClient<typeof AppAPIContract>;
     onAuthSuccess?: () => Promise<void>;
     authDialogConstructors?: AuthDialogConstructor[];
 }
 
-export const LoginScreen: React.FunctionComponent<LoginScreenProps>
+export const LoginPage: React.FunctionComponent<LoginPageProps>
     = (props) => {
         // TODO optimize
         const authDialogConstructorMap = new Map<AuthType, AuthDialogConstructor>(
@@ -41,12 +43,17 @@ export const LoginScreen: React.FunctionComponent<LoginScreenProps>
         );
 
         const [authInfos, setAuthInfos] = React.useState<AuthInfo[]>();
+        const [appletSpawnerInfo, setAppletSpawnerInfo] = React.useState<AppletSpawnerInfo>();
 
         React.useEffect(() => {
             // TODO
             props.apiClient.auth.info()
                 .then((res) => {
                     setAuthInfos(res.callbacks);
+                });
+            props.apiClient.appletManager.info()
+                .then((res) => {
+                    setAppletSpawnerInfo(res.spawner);
                 });
         }, [props.apiClient]);
 
@@ -63,8 +70,9 @@ export const LoginScreen: React.FunctionComponent<LoginScreenProps>
                 ? authDialogConstructorMap.get(authInfos?.[authID]?.type)
                 : null
         );
-        return (
-            <P.LoginPage
+
+        return <Page appletSpawnerInfo={appletSpawnerInfo}>
+            <PageMainHeader 
                 headerUtilities={
                     <Select
                         autoClose={true}
@@ -81,30 +89,30 @@ export const LoginScreen: React.FunctionComponent<LoginScreenProps>
                         }</SelectList>
                     </Select>
                 }
-                loginTitle="Log in to your account"
-                // TODO !!!!!
-                loginSubtitle={<>
-                    Enter your credentials to access <strong>Application</strong>.
-                </> as any}
-                //   brandImgSrc={brandImg}
-                //   brandImgAlt="PatternFly logo"    
-                // footerListVariants={ListVariant.inline}
-                // footerListItems={listItem}
-                // textContent="This is placeholder text only. Use this area to place any information or introductory message about your application that may be relevant to users."
-                // socialMediaLoginContent={socialMediaLoginContent}
-                // socialMediaLoginAriaLabel="Log in with social media"
-                // signUpForAccountMessage={signUpForAccountMessage}
-                // forgotCredentials={forgotCredentials}
-            >{
-                    AuthDialog != null && authInfos?.[authID] != null
-                        ? <AuthDialog
-                            apiClient={props.apiClient}
-                            authRef={authInfos[authID].ref}
-                            onAuthSuccess={props.onAuthSuccess}
-                        />
+                title="Log in to your account"
+                subtitle={<>
+                    {"Enter your credentials"}
+                    {
+                        appletSpawnerInfo?.displayName
+                        ? <>
+                            {" "}{"to access"}{" "}
+                            <strong>{appletSpawnerInfo?.displayName}</strong>
+                        </> 
                         : null
-                }</P.LoginPage>
-        );
+                    }
+                    {"."}
+                </> as any}
+            />
+            <PageMainBody>{
+                AuthDialog != null && authInfos?.[authID] != null
+                    ? <AuthDialog
+                        apiClient={props.apiClient}
+                        authRef={authInfos[authID].ref}
+                        onAuthSuccess={props.onAuthSuccess}
+                    />
+                    : null
+            }</PageMainBody>
+        </Page>;
     };
 
 export const PasswordAuthDialog

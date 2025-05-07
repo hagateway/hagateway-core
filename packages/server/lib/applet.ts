@@ -1,6 +1,6 @@
 import Express from "express";
 import { implement } from "@orpc/server";
-import { AppletState, AppletManagerAPIContract } from "@hagateway/api/dist/lib/applet";
+import { AppletState, AppletManagerAPIContract, AppletSpawnerInfo } from "@hagateway/api/dist/lib/applet";
 
 import { ISessionManager } from "./session";
 
@@ -22,6 +22,9 @@ export interface AppletProxySpec {
     hostname?: string;
 }
 
+/**
+ * The specification for the applet process.
+ */
 export interface AppletProcessSpec {
     /** Path to the executable. */
     execPath: string;
@@ -52,28 +55,23 @@ export interface AppletSpawnerContext {
 
 
 export interface IAppletSpawner {
-    (ref: string, context: AppletSpawnerContext): Promise<void>;
+    info: AppletSpawnerInfo;
+    callback: (ref: string, context: AppletSpawnerContext) => Promise<void>;
     onRequest?: Express.RequestHandler;
 }
 
 
-// TODO filesystem like interface
-// TODO state change: active, reloading, inactive, failed, activating, deactivating
 export interface IAppletManager {
-    // TODO
-    use(spawner: IAppletSpawner): IAppletManager;
-
+    readonly spawner: IAppletSpawner;
+    useSpawner(spawner: IAppletSpawner): IAppletManager;
+    
     create(ref: string | null, spec: AppletSpec): Promise<string>;
     destroy(ref: string): Promise<void>;
     // TODO
     //query?(ref: string): Promise<AppletSpec>;
-
     refs(): AsyncIterator<string>;
-
     has(ref: string): Promise<boolean>;
-
     serve?(ref: string): Promise<Express.RequestHandler>;
-
     // TODO !!!!!
     getState(ref: string): Promise<AppletState>;
     onStateChange(ref: string): AsyncIterable<AppletState>;
@@ -103,6 +101,7 @@ export function AppletManagerAPIImpl(
         info: os.info.handler(() => {
             return {
                 version: 0,
+                spawner: config.appletManager.spawner.info,
             };
         }),
         // TODO
@@ -121,8 +120,9 @@ export function AppletManagerAPIImpl(
                         throw new Error("Applet already exists");
 
                     await config.appletManager.create(
-                        sessionData.appletRef, 
-                        { user: sessionData.user, },
+                        sessionData.appletRef, { 
+                            user: sessionData.user, 
+                        },
                     );
                 }
             ),

@@ -1,5 +1,13 @@
 # @hagateway/clientkit.frontend
 
+## 0.0.1-alpha.9
+
+### Patch Changes
+
+- Internal test release.
+- Updated dependencies
+  - @hagateway/api@0.0.1-alpha.5
+
 ## 0.0.1-alpha.8
 
 ### Patch Changes

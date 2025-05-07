@@ -33,5 +33,5 @@ jobs:
           npm run release
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_DEBUG: 'request'
-          NPM_CONFIG_LOGLEVEL: 'silly'
+          # NODE_DEBUG: 'request'
+          # NPM_CONFIG_LOGLEVEL: 'silly'

@@ -40,9 +40,6 @@ namespace SystemdRefOps {
     }
 }
 
-
-
-
 namespace SystemdRuntimeDirOps {
     // TODO
     export function generate(ref: string, baseName: string): string {
@@ -87,9 +84,17 @@ export class SystemdAppletManager implements IAppletManager {
             this.pamName = config.pamName;
     }
 
-    protected readonly spawners: Set<IAppletSpawner> = new Set();
-    use(spawner: IAppletSpawner) {
-        this.spawners.add(spawner);
+    protected _spawner?: IAppletSpawner;
+    get spawner() {
+        if (this._spawner == null)
+            throw new Error("A spawner has not been set. Call `useSpawner`.");
+        return this._spawner;
+    }
+
+    useSpawner(spawner: IAppletSpawner) {
+        if (this._spawner != null)
+            throw new Error(`A spawner has already been set: ${this._spawner.info}`);
+        this._spawner = spawner;
         return this;
     }
 
@@ -109,46 +114,45 @@ export class SystemdAppletManager implements IAppletManager {
         var proxySpec = null as AppletProxySpec | null;
         var processSpec = null as AppletProcessSpec | null;
 
-        for (const spawner of this.spawners) {
-            await spawner(ref, {
-                spec,
-                // useApp(app) {
-                //     // TODO
-                // },
-                useProxy: async (hint) => {
-                    if (proxySpec != null)
+        await this.spawner.callback(ref, {
+            spec,
+            // useApp(app) {
+            //     // TODO
+            // },
+            useProxy: async (hint) => {
+                if (proxySpec != null)
+                    throw new Error("TODO");
+    
+                // TODO
+                switch (hint.transport?.protocol) {
+                    case "ip":
+                        throw new Error("TODO not implemented");
+                        break;
+                    case "unix":
+                        return proxySpec = {
+                            ...hint,
+                            transport: {
+                                protocol: hint.transport.protocol,
+                                // TODO
+                                socketPath: Path.join(
+                                    useRuntimeDirectory(),
+                                    "applet.sock",
+                                ),
+                            },
+                        };
+                        break;
+                    default:
                         throw new Error("TODO");
+                        break;
+                }
+            },
+            useProcess: async (spec) => {
+                if (processSpec != null)
+                    throw new Error("TODO");
+                return processSpec = spec;
+            },
+        });            
         
-                    // TODO
-                    switch (hint.transport?.protocol) {
-                        case "ip":
-                            throw new Error("TODO not implemented");
-                            break;
-                        case "unix":
-                            return proxySpec = {
-                                ...hint,
-                                transport: {
-                                    protocol: hint.transport.protocol,
-                                    // TODO
-                                    socketPath: Path.join(
-                                        useRuntimeDirectory(),
-                                        "applet.sock",
-                                    ),
-                                },
-                            };
-                            break;
-                        default:
-                            throw new Error("TODO");
-                            break;
-                    }
-                },
-                useProcess: async (spec) => {
-                    if (processSpec != null)
-                        throw new Error("TODO");
-                    return processSpec = spec;
-                },
-            });            
-        }
 
         const props: [string, any][] = [];
 
@@ -196,7 +200,9 @@ export class SystemdAppletManager implements IAppletManager {
             "Description",
             new DBus.Variant(
                 's', 
-                SystemdUnitDataOps.encode({ proxy: proxySpec }),
+                SystemdUnitDataOps.encode({ 
+                    proxy: proxySpec,
+                }),
             ),
         ])
         if (this.pamName != null)
@@ -350,10 +356,8 @@ export class SystemdAppletManager implements IAppletManager {
         const proxyMiddleware = ProxyMiddleware(proxyOptions);
 
         const router = Express.Router();
-        for (const spawner of this.spawners) {
-            if (spawner.onRequest != null)
-                router.use(spawner.onRequest);
-        }
+        if (this.spawner.onRequest != null)
+            router.use(this.spawner.onRequest);
         router.use((req, res, next) => {
             if (res.upgrade != null) {
                 if (res.socket == null)

@@ -6,13 +6,12 @@ export async function waitForFile(
     filePath: string, 
     options?: { signal?: AbortSignal },
 ): Promise<void> {
-    const fileName = Path.basename(filePath);
-
     try {
         await Fs.promises.access(filePath, Fs.constants.F_OK);
         return;
     } catch {}
 
+    const fileName = Path.basename(filePath);
     for await (const event of Fs.promises.watch(
         Path.dirname(filePath), 
         { signal: options?.signal },

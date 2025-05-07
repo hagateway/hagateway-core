@@ -10,12 +10,13 @@ import { RPCLink } from "@orpc/client/fetch";
 import { Config } from "../index";
 
 // TODO
-import { LoginScreen } from "../lib/components/login";
-import { DashboardScreen } from "../lib/components/dashboard";
+import { LoginPage } from "../lib/components/page-login";
+import { DashboardPage } from "../lib/components/page-dashboard";
 
 
 import * as PGroup from "@patternfly/react-component-groups";
 import "@patternfly/react-core/dist/styles/base.css";
+import { ColorSchemeProvider } from "../lib/components/ui/color-scheme";
 
 
 export interface ErrorBoundaryProps {
@@ -51,7 +52,7 @@ export const Screen: React.FunctionComponent<{
         return null;
 
     if (!shouldLogin)
-        return <DashboardScreen
+        return <DashboardPage
             apiClient={props.apiClient}
             onLogoutSuccess={async () => {
                 setShouldLogin(true);
@@ -60,7 +61,7 @@ export const Screen: React.FunctionComponent<{
             onProceed={props.onProceed}
         />;
 
-    return <LoginScreen
+    return <LoginPage
         apiClient={props.apiClient}
         onAuthSuccess={async () => {
             await props.onLoginSuccess?.();
@@ -84,7 +85,6 @@ export const App: React.FunctionComponent<{
         window.addEventListener("pageshow", handlePageShow);
         return () => window.removeEventListener("pageshow", handlePageShow);
     }, [window]);
-
 
     const configElement = document.querySelector("script#config");
     if (configElement == null)
@@ -146,6 +146,7 @@ export function render(window: Window) {
     ReactDOM.createRoot(rootElement).render(
         <React.StrictMode>
             <ErrorBoundary>
+                <ColorSchemeProvider />
                 <App window={window} />
             </ErrorBoundary>
         </React.StrictMode>,

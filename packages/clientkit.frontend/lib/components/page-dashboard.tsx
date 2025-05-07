@@ -3,7 +3,7 @@ import React from "react";
 import * as P from "@patternfly/react-core";
 import * as PIcons from "@patternfly/react-icons";
 import "@patternfly/react-core/dist/styles/base.css";
-import { AppletState } from "@hagateway/api/dist/lib/applet";
+import { AppletSpawnerInfo, AppletState } from "@hagateway/api/dist/lib/applet";
 
 import { ActionButton } from "./ui/action";
 
@@ -117,31 +117,61 @@ import { AppAPIContract } from "@hagateway/api/dist/lib/app";
 import { safe } from "@orpc/client";
 import { ConfirmModal } from "./ui/confirm";
 import { useErrorHandler } from "./ui/error";
+import { Page, PageMainBody, PageMainHeader } from "./page";
 
 
-export interface DashboardScreenProps {
+export interface DashboardPageProps {
     apiClient: ContractRouterClient<typeof AppAPIContract>;
     onLogoutSuccess?: () => Promise<void>;
     onProceed?: () => Promise<void>;
 }
 
-export const DashboardScreen: React.FunctionComponent<DashboardScreenProps>
-    = (props: DashboardScreenProps) => {
-        return (
-            <P.LoginPage
-                //   brandImgSrc={brandImg}
-                //   brandImgAlt="PatternFly logo"
-                // footerListVariants={ListVariant.inline}
-                // footerListItems={listItem}
-                // textContent="This is placeholder text only. Use this area to place any information or introductory message about your application that may be relevant to users."
-                // loginTitle={
-                //   <>
-                //     Welcome! <strong>Anon</strong>.
-                //   </>
-                // }
-                loginTitle="Welcome!"
-                loginSubtitle="You are already logged in. Select an action below."
-            >
+export const DashboardPage: React.FunctionComponent<DashboardPageProps>
+    = (props: DashboardPageProps) => {
+        const errorHandler = useErrorHandler();
+        const [userDisplay, setUserDisplay] = React.useState<string | null>(null);
+        const [appletSpawnerInfo, setAppletSpawnerInfo] = React.useState<AppletSpawnerInfo>();
+
+        React.useEffect(() => {
+            const todo = async () => {
+                const { error, data } = await safe(
+                    props.apiClient.accountManager.user.getDisplayName({})
+                );
+                if (error != null) {
+                    // TODO !!!!!!!
+                    errorHandler(error);
+                }
+                setUserDisplay(data ?? null);
+            };
+            todo();
+        }, [props.apiClient]);
+
+        React.useEffect(() => {
+            const todo = async () => {
+                const { error, data } = await safe(
+                    props.apiClient.appletManager.info()
+                );
+                if (error != null) {
+                    // TODO !!!!!!!
+                    errorHandler(error);
+                }
+                if (data != null)
+                    setAppletSpawnerInfo(data.spawner);
+            };
+            todo();
+        }, [props.apiClient]);
+
+        return <Page appletSpawnerInfo={appletSpawnerInfo}>
+            <PageMainHeader 
+                title={
+                    <span>
+                        <span>Welcome!</span>
+                        {userDisplay ? <>{" "}<span>{userDisplay}</span>{"."}</> : null}
+                    </span> as any
+                }
+                subtitle="You are already logged in. Select an action below."
+            />
+            <PageMainBody>
                 <P.Flex direction={{ default: "column" }}>
                     <P.Flex>
                         <ActionButton variant="primary" onClick={async () => {
@@ -154,7 +184,9 @@ export const DashboardScreen: React.FunctionComponent<DashboardScreenProps>
                             }
 
                             await props.onLogoutSuccess?.();
-                        }}>Log out</ActionButton>
+                        }}>
+                            Log out
+                        </ActionButton>
                         <ActionButton
                             variant="link"
                             icon={<PIcons.ArrowRightIcon />}
@@ -163,7 +195,15 @@ export const DashboardScreen: React.FunctionComponent<DashboardScreenProps>
                                 await props.onProceed?.();
                             }}
                         >
-                            Proceed to <strong>Application</strong>
+                            {"Proceed"}
+                            {
+                                appletSpawnerInfo?.displayName
+                                    ? <>
+                                        {" "}{"to"}{" "}
+                                        <strong>{appletSpawnerInfo?.displayName}</strong>
+                                    </>
+                                    : null
+                            }                            
                         </ActionButton>
                     </P.Flex>
                     <P.ExpandableSection
@@ -173,6 +213,6 @@ export const DashboardScreen: React.FunctionComponent<DashboardScreenProps>
                         <AppletControlPanel apiClient={props.apiClient} />
                     </P.ExpandableSection>
                 </P.Flex>
-            </P.LoginPage>
-        );
+            </PageMainBody>
+        </Page>;
     };

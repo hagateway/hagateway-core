@@ -1,6 +1,7 @@
 import Z from "zod";
 import { IKit } from "@hagateway/server/dist/src";
 
+import { AccountsServiceAccountManager } from "../lib/account-accountsservice";
 import { SystemdAppletManager } from "../lib/applet-systemd";
 import { PAMPasswdAuthProvider } from "../lib/auth-pam";
 
@@ -72,6 +73,13 @@ export default ((registry) => {
             return PAMPasswdAuthProvider(
                 pamAuthHandlerSchema.parse(config),
             );
+        }
+    );
+
+    registry.account.managers.set(
+        "accountsservice",
+        async () => {
+            return new AccountsServiceAccountManager();
         }
     );
 }) as IKit;
