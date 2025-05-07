@@ -1,12 +1,13 @@
 {
     "name": "@hagateway/serverkit-applet-vscode",
-    "version": "0.0.1-alpha.4",
+    "version": "0.0.1-alpha.5",
     "description": "",
     "files": [
-        "dist/",
-        "lib/",
-        "res/",
-        "src/"
+        "dist",
+        "lib",
+        "res",
+        "src",
+        "index.js"
     ],
     "scripts": {
         "build": "tsc",
