@@ -1,13 +1,15 @@
 {
   "name": "@hagateway/clientkit.frontend",
-  "version": "0.0.1-alpha.9",
+  "version": "0.0.1-alpha.10",
   "type": "module",
   "main": "index.mjs",
   "description": "",
   "files": [
     "dist",
     "lib",
-    "src"
+    "src",
+    "index.d.ts",
+    "index.mjs"
   ],
   "scripts": {
     "dev": "vite",
