@@ -2,9 +2,7 @@
 
 ## TODOs
 
-
-- get user info - real name... over dbus
-
+- orpc stalled streaming without keepalive
 - orpc error handling - console output??
 
 - waitForFile bug!!!! intermediate dirs not watched!!!!!

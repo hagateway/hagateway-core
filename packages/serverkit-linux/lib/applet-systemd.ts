@@ -314,6 +314,8 @@ export class SystemdAppletManager implements IAppletManager {
         if (!await this.has(ref))
             throw new Error("TODO");
 
+        await this.wait(ref);
+
         const unitData = await this.getUnitData(ref);
 
         if (unitData.proxy == null) {
