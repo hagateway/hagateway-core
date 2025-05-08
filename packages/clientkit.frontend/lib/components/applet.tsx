@@ -10,10 +10,12 @@ export interface AppletIconProps {
 
 export const AppletIcon
 : React.FunctionComponent<AppletIconProps> = (props) => {
-    return <P.Icon size={props.size}>
-        <img
+    return <>{
+        props.appletSpawnerInfo?.displayIcon != null
+        ? <P.Icon size={props.size}><img
             src={props.appletSpawnerInfo?.displayIcon} 
-            alt={props.appletSpawnerInfo?.description ?? "Applet logo"}
-        />
-    </P.Icon>;
+            alt={props.appletSpawnerInfo?.description}
+        /></P.Icon>
+        : props.appletSpawnerInfo?.displayName
+    }</>;
 };
