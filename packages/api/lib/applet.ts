@@ -5,12 +5,11 @@ import { z } from "zod";
 
 export const AppletState = z.enum([
     "unknown",
-    "active",
-    "reloading",
-    "inactive",
+    "up",
+    "down",
     "failed",
-    "activating",
-    "deactivating",
+    "starting",
+    "stopping",    
 ]);
 export type AppletState = z.infer<typeof AppletState>;
 

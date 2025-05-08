@@ -11,11 +11,11 @@ import {
 import "http-upgrade-request";
 
 import { AppletState } from "@hagateway/api/dist/lib/applet";
-import { 
-    AppletSpec, 
-    IAppletManager, 
-    IAppletSpawner, 
-    AppletProxySpec, 
+import {
+    AppletSpec,
+    IAppletManager,
+    IAppletSpawner,
+    AppletProxySpec,
     AppletProcessSpec,
 } from "@hagateway/server/dist/lib/applet";
 
@@ -26,7 +26,7 @@ import { SystemdDBus } from "./utils/systemd";
 namespace SystemdRefOps {
     export function encode(ref: string, baseName: string): string {
         return [
-            Buffer.from(ref).toString("base64url"), 
+            Buffer.from(ref).toString("base64url"),
             baseName,
             "service",
         ].join(".");
@@ -45,7 +45,7 @@ namespace SystemdRuntimeDirOps {
     export function generate(ref: string, baseName: string): string {
         return Path.join(
             "/run", [
-                Buffer.from(ref).toString("base64url"), 
+                Buffer.from(ref).toString("base64url"),
                 baseName,
             ].join(".")
         );
@@ -122,7 +122,7 @@ export class SystemdAppletManager implements IAppletManager {
             useProxy: async (hint) => {
                 if (proxySpec != null)
                     throw new Error("TODO");
-    
+
                 // TODO
                 switch (hint.transport?.protocol) {
                     case "ip":
@@ -151,8 +151,8 @@ export class SystemdAppletManager implements IAppletManager {
                     throw new Error("TODO");
                 return processSpec = spec;
             },
-        });            
-        
+        });
+
 
         const props: [string, any][] = [];
 
@@ -167,15 +167,15 @@ export class SystemdAppletManager implements IAppletManager {
             );
             if (processSpec.workingDir != null)
                 props.push([
-                    "WorkingDirectory", 
+                    "WorkingDirectory",
                     new DBus.Variant('s', processSpec.workingDir),
                 ]);
             if (processSpec.env != null)
                 props.push([
-                    "Environment", 
+                    "Environment",
                     new DBus.Variant('as', Array.from(
-                        Object.entries(processSpec.env), 
-                        ([key, value]) => 
+                        Object.entries(processSpec.env),
+                        ([key, value]) =>
                             `${key}="${value.replaceAll('"', String.raw`\"`)}"`,
                     )),
                 ]);
@@ -192,15 +192,15 @@ export class SystemdAppletManager implements IAppletManager {
 
         // TODO !!!!!
         props.push([
-            "User", 
+            "User",
             new DBus.Variant('s', String(spec.user)),
         ]);
 
         props.push([
             "Description",
             new DBus.Variant(
-                's', 
-                SystemdUnitDataOps.encode({ 
+                's',
+                SystemdUnitDataOps.encode({
                     proxy: proxySpec,
                 }),
             ),
@@ -213,9 +213,9 @@ export class SystemdAppletManager implements IAppletManager {
 
         if (runtimeDirectory != null)
             props.push([
-                "RuntimeDirectory", 
+                "RuntimeDirectory",
                 new DBus.Variant(
-                    'as', 
+                    'as',
                     // TODO warn
                     // TODO https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html#RuntimeDirectory=
                     [Path.relative("/run", useRuntimeDirectory())],
@@ -246,11 +246,11 @@ export class SystemdAppletManager implements IAppletManager {
 
     protected async wait(ref: string) {
         var state = await this.getState(ref);
-        if (state === "active")
+        if (state === "up")
             return;
 
         for await (state of this.onStateChange(ref)) {
-            if (state === "active")
+            if (state === "up")
                 return;
         }
     }
@@ -280,14 +280,14 @@ export class SystemdAppletManager implements IAppletManager {
         } catch (error) {
             if (error instanceof DBus.DBusError) {
                 switch (error.type) {
-                case SystemdDBus.Error.NoSuchUnit:
-                    return false;
-                default:
-                    break;
+                    case SystemdDBus.Error.NoSuchUnit:
+                        return false;
+                    default:
+                        break;
                 }
             }
             throw new Error(
-                `An error occurred while checking if ref exists: ${ref}`, 
+                `An error occurred while checking if ref exists: ${ref}`,
                 { cause: error },
             );
         }
@@ -295,12 +295,12 @@ export class SystemdAppletManager implements IAppletManager {
 
     // TODO
     protected async getUnitData(ref: string)
-    : Promise<SystemdUnitData> {
+        : Promise<SystemdUnitData> {
         const unitName = SystemdRefOps.encode(ref, this.baseUnitName);
 
         const dataEncoded = await this.dbus.getUnitPropertyValue(
-            unitName, 
-            SystemdDBus.Path.Unit, 
+            unitName,
+            SystemdDBus.Path.Unit,
             "Description",
         );
         if (dataEncoded == null)
@@ -372,29 +372,47 @@ export class SystemdAppletManager implements IAppletManager {
         return router;
     }
 
-    protected mapState(unitState: string): AppletState {
-        switch (unitState) {
-            case "active": break;
-            case "reloading": break;
-            case "inactive": break;
-            case "failed": break;
-            case "activating": break;
-            case "deactivating": break;
-            default:
-                return "unknown";
+    protected mapState(
+        unitSubState: string,
+    ): AppletState {
+        switch (unitSubState) {
+            case "running":
+                return "up";
+            case "dead":
+            case "condition":
+            case "exited":
+                return "down";
+            case "failed":
+                return "failed";
+            case "start-pre":
+            case "start":
+            case "start-post":
+                return "starting";
+            case "stop":
+            case "stop-watchdog":
+            case "stop-sigterm":
+            case "stop-sigkill":
+            case "stop-post":
+            case "final-watchdog":
+            case "final-sigterm":
+            case "final-sigkill":
+                return "stopping";
+            case "reload":
+            case "auto-restart":
+                break;
         }
-        return unitState;
+        return "unknown";
     }
 
     async getState(ref: string) {
         const unitName = SystemdRefOps.encode(ref, this.baseUnitName);
-        
+
         // TODO !!!!! validate
         return this.mapState(
             await this.dbus.getUnitPropertyValue(
-                unitName, 
-                SystemdDBus.Path.Unit, 
-                "ActiveState",
+                unitName,
+                SystemdDBus.Path.Unit,
+                "SubState",
             )
         );
     }
@@ -404,9 +422,9 @@ export class SystemdAppletManager implements IAppletManager {
         const unitName = SystemdRefOps.encode(ref, this.baseUnitName);
 
         for await (const res of this.dbus.onUnitPropertyChange(
-            unitName, 
-            SystemdDBus.Path.Unit, 
-            "ActiveState",
+            unitName,
+            SystemdDBus.Path.Unit,
+            "SubState",
         )) { yield this.mapState(res); }
     }
 }

@@ -1,5 +1,14 @@
 # @hagateway/clientkit
 
+## 0.0.1-alpha.9
+
+### Patch Changes
+
+- sync
+- Updated dependencies
+  - @hagateway/clientkit.frontend@0.0.1-alpha.11
+  - @hagateway/server@0.0.1-alpha.8
+
 ## 0.0.1-alpha.8
 
 ### Patch Changes

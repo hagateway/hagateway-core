@@ -1,6 +1,6 @@
 {
   "name": "@hagateway/server",
-  "version": "0.0.1-alpha.7",
+  "version": "0.0.1-alpha.8",
   "description": "",
   "files": [
     "dist",
@@ -19,8 +19,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@hagateway/api": "^0.0.1-alpha.5",
-    "@orpc/server": "^0.54.0",
+    "@hagateway/api": "^0.0.1-alpha.6",
+    "@orpc/server": "^1.2.0",
     "express": "^5.1.0",
     "express-session": "^1.18.1",
     "http-upgrade-request": "git://github.com/hagateway/http-upgrade-request.git",
@@ -29,7 +29,7 @@
   "devDependencies": {
     "@types/express": "^5.0.1",
     "@types/express-session": "^1.18.1",
-    "@types/node": "^22.14.1",
+    "@types/node": "^22.15.16",
     "@types/yargs": "^17.0.33",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"

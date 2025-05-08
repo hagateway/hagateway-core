@@ -66,17 +66,12 @@ export const AppletControlPanel = (props: AppletControlPanelProps) => {
                 Applet Unavailable
             </ActionButton>;
             break;
-        case "active":
+        case "up":
             button = <ActionButton variant="danger" onClick={killApplet}>
                 Kill Applet
             </ActionButton>;
             break;
-        case "reloading":
-            button = <ActionButton isDisabled isLoading>
-                Reloading Applet
-            </ActionButton>;
-            break;
-        case "inactive":
+        case "down":
             button = <ActionButton
                 variant="primary"
                 onClick={startApplet}
@@ -89,12 +84,12 @@ export const AppletControlPanel = (props: AppletControlPanelProps) => {
                 Start Applet
             </ActionButton>;
             break;
-        case "activating":
+        case "starting":
             button = <ActionButton isDisabled isLoading>
                 Starting Applet
             </ActionButton>;
             break;
-        case "deactivating":
+        case "stopping":
             button = <ActionButton isDisabled isLoading>
                 Stopping Applet
             </ActionButton>;

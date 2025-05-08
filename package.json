@@ -10,7 +10,7 @@
         "packages/*"
     ],
     "devDependencies": {
-        "@changesets/cli": "^2.29.2"
+        "@changesets/cli": "^2.29.3"
     },
     "scripts": {
         "change": "npx @changesets/cli && npx @changesets/cli version",

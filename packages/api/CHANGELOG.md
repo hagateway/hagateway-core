@@ -1,5 +1,11 @@
 # @hagateway/api
 
+## 0.0.1-alpha.6
+
+### Patch Changes
+
+- sync
+
 ## 0.0.1-alpha.5
 
 ### Patch Changes
