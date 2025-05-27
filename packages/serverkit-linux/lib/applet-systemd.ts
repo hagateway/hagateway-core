@@ -142,13 +142,15 @@ export class SystemdAppletManager implements IAppletManager {
                         };
                         break;
                     default:
-                        throw new Error("TODO");
-                        break;
+                        throw new Error(
+                            `Unknown transport protocol: `
+                            + `${hint.transport?.protocol}`
+                        );
                 }
             },
             useProcess: async (spec) => {
                 if (processSpec != null)
-                    throw new Error("TODO");
+                    throw new Error("A process spec has already been set");
                 return processSpec = spec;
             },
         });
@@ -159,8 +161,8 @@ export class SystemdAppletManager implements IAppletManager {
         // TODO
         if (processSpec != null) {
             props.push(
-                ["Type", new DBus.Variant('s', 'simple')],
-                ["ExecStart", new DBus.Variant('a(sasb)', [
+                ["Type", new DBus.Variant("s", "simple")],
+                ["ExecStart", new DBus.Variant("a(sasb)", [
                     // executable, args, failUnclean,
                     [processSpec.execPath, processSpec.execArgv, true]
                 ])],
@@ -168,38 +170,41 @@ export class SystemdAppletManager implements IAppletManager {
             if (processSpec.workingDir != null)
                 props.push([
                     "WorkingDirectory",
-                    new DBus.Variant('s', processSpec.workingDir),
+                    new DBus.Variant("s", processSpec.workingDir),
                 ]);
             if (processSpec.env != null)
                 props.push([
                     "Environment",
-                    new DBus.Variant('as', Array.from(
+                    new DBus.Variant("as", Array.from(
                         Object.entries(processSpec.env),
                         ([key, value]) =>
-                            `${key}="${value.replaceAll('"', String.raw`\"`)}"`,
+                            `${key}="${value.replaceAll(
+                                String.raw`"`, 
+                                String.raw`\"`,
+                            )}"`,
                     )),
                 ]);
         } else {
             props.push(
-                ["Type", new DBus.Variant('s', "oneshot")],
+                ["Type", new DBus.Variant("s", "oneshot")],
                 ["ExecStart", new DBus.Variant("a(sasb)", [
                     // executable, args, failUnclean,
                     ["true", ["true"], true]
                 ])],
-                ["RemainAfterExit", new DBus.Variant('b', true)],
+                ["RemainAfterExit", new DBus.Variant("b", true)],
             );
         }
 
         // TODO !!!!!
         props.push([
             "User",
-            new DBus.Variant('s', String(spec.user)),
+            new DBus.Variant("s", String(spec.user)),
         ]);
 
         props.push([
             "Description",
             new DBus.Variant(
-                's',
+                "s",
                 SystemdUnitDataOps.encode({
                     proxy: proxySpec,
                 }),
@@ -208,14 +213,14 @@ export class SystemdAppletManager implements IAppletManager {
         if (this.pamName != null)
             props.push([
                 "PAMName",
-                new DBus.Variant('s', this.pamName),
+                new DBus.Variant("s", this.pamName),
             ]);
 
         if (runtimeDirectory != null)
             props.push([
                 "RuntimeDirectory",
                 new DBus.Variant(
-                    'as',
+                    "as",
                     // TODO warn
                     // TODO https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html#RuntimeDirectory=
                     [Path.relative("/run", useRuntimeDirectory())],
@@ -259,7 +264,7 @@ export class SystemdAppletManager implements IAppletManager {
         const manager = await this.dbus.Manager();
         await manager.StopUnit(
             SystemdRefOps.encode(ref, this.baseUnitName), // name
-            'fail', // mode
+            "fail", // mode
         );
     }
 
@@ -312,7 +317,7 @@ export class SystemdAppletManager implements IAppletManager {
     // TODO !!!! cache!!!!!!!
     async serve(ref: string): Promise<Express.RequestHandler> {
         if (!await this.has(ref))
-            throw new Error("TODO");
+            throw new Error(`Unit ${ref} does not exist`);
 
         await this.wait(ref);
 
@@ -340,7 +345,10 @@ export class SystemdAppletManager implements IAppletManager {
             case "unix":
                 const { socketPath } = unitData.proxy.transport;
                 if (socketPath == null)
-                    throw new Error("TODO");
+                    throw new Error(
+                        `Unit ${ref} does not have a proxy socket path `
+                        + `configured: ${unitData}`
+                    );
                 proxyOptions.target = {
                     host: "localhost",
                     port: 0,
@@ -350,7 +358,7 @@ export class SystemdAppletManager implements IAppletManager {
                 break;
             default:
                 throw new Error(
-                    `Unknown transport protocol: `
+                    `Unit ${ref} has an unknown transport protocol: `
                     + `${unitData.proxy.transport.protocol}`
                 );
         }
@@ -407,7 +415,6 @@ export class SystemdAppletManager implements IAppletManager {
     async getState(ref: string) {
         const unitName = SystemdRefOps.encode(ref, this.baseUnitName);
 
-        // TODO !!!!! validate
         return this.mapState(
             await this.dbus.getUnitPropertyValue(
                 unitName,

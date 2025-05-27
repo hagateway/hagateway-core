@@ -12,6 +12,7 @@
     "@hagateway/serverkit-session-sqlite": "0.0.1-alpha.1"
   },
   "changesets": [
+    "big-suns-appear",
     "bitter-suits-switch",
     "clean-badgers-joke",
     "clean-terms-buy",
