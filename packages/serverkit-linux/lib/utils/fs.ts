@@ -34,14 +34,16 @@ export async function waitForFile(
         signal?: AbortSignal,
     },
 ): Promise<void> {
+    if (await isAccessible(
+        Path.resolve(options?.basePath ?? "", filePath)
+    )) {
+        return;
+    }
+
     var basePath = options?.basePath;
     if (basePath == null) {
         basePath = await findClosestExistingDir(filePath);
         filePath = Path.relative(basePath, filePath);
-    }
-
-    if (await isAccessible(Path.resolve(basePath, filePath))) {
-        return;
     }
 
     for await (const event of Fs.promises.watch(
